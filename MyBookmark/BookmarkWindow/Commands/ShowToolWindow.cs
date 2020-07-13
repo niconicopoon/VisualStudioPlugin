@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using MyBookmarkWindow.ToolWindows;
+using BookmarkToolWindow.ToolWindows;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
-namespace MyBookmarkWindow
+namespace BookmarkToolWindow
 {
     internal sealed class ShowToolWindow
     {
@@ -22,7 +22,7 @@ namespace MyBookmarkWindow
             package.JoinableTaskFactory.RunAsync(async () =>
             {
                 ToolWindowPane window = await package.ShowToolWindowAsync(
-                    typeof(MyBookmarkToolWindow),
+                    typeof(BookmarkWindow),
                     0,
                     create: true,
                     cancellationToken: package.DisposalToken);

@@ -1,13 +1,13 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace MyBookmarkWindow.ToolWindows
+namespace BookmarkToolWindow.ToolWindows
 {
-    public partial class MyBookmarkToolWindowControl : UserControl
+    public partial class BookmarkToolWindowControl : UserControl
     {
-        private MyBookmarkToolWindowState _state;
+        private BookmarkWindowState _state;
 
-        public MyBookmarkToolWindowControl(MyBookmarkToolWindowState state)
+        public BookmarkToolWindowControl(BookmarkWindowState state)
         {
             _state = state;
 

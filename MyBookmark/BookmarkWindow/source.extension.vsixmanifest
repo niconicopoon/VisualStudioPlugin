@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="MyBookmarkWindow.f175a99e-7aa0-461b-a858-3924af93468a" Version="1.0" Language="en-US" Publisher="Mads Kristensen" />
+        <Identity Id="BookmarkToolWindow.f175a99e-7aa0-461b-a858-3924af93468a" Version="1.0" Language="en-US" Publisher="Mads Kristensen" />
         <DisplayName>My Bookmark Window</DisplayName>
         <Description xml:space="preserve">Shows how to use an Async Tool Window in Visual Studio 15.6+</Description>
-        <MoreInfo>https://github.com/madskristensen/MyBookmarkWindow</MoreInfo>
+        <MoreInfo>https://github.com/madskristensen/BookmarkToolWindow</MoreInfo>
         <License>Resources\LICENSE</License>
         <Icon>Resources\Icon128x128.png</Icon>
         <PreviewImage>Resources\Icon128x128.png</PreviewImage>
-        <Tags>toolwindow, MyBookmark</Tags>
+        <Tags>toolwindow, sample</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0.27413, 16.0)" />
