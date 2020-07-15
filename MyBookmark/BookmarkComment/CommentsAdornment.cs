@@ -12,9 +12,15 @@ using System.Windows;
 using System.Net;
 using System.IO;
 using System.Collections.Concurrent;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using System.Windows.Documents;
 using Span = Microsoft.VisualStudio.Text.Span;
+using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio;
 
 namespace MyBookmark
 {
@@ -30,6 +36,9 @@ namespace MyBookmark
     /// </summary>
     internal sealed class CommentsAdornment : ITagger<ErrorTag>, IDisposable
     {
+        // [Import(typeof(IVsEditorAdaptersFactoryService))]
+        // internal IVsEditorAdaptersFactoryService editorFactory = null;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CommentsAdornment"/> class.
         /// </summary>
@@ -78,8 +87,32 @@ namespace MyBookmark
             public string Filepath { get; set; }
         }
 
+        /* void AddCommandFilter(IWpfTextView textView, KeyBindingCommandFilter commandFilter)
+        {
+            if (commandFilter.m_added == false)
+            {
+                //get the view adapter from the editor factory
+                IOleCommandTarget next;
+                IVsTextView view = editorFactory.GetViewAdapter(textView);
+
+                int hr = view.AddCommandFilter(commandFilter, out next);
+
+                if (hr == VSConstants.S_OK)
+                {
+                    commandFilter.m_added = true;
+                    //you'll need the next target for Exec and QueryStatus
+                    if (next != null)
+                        commandFilter.m_nextTarget = next;
+                }
+            }
+        } */
+
         public CommentsAdornment(IWpfTextView view, ITextDocumentFactoryService textDocumentFactory, SVsServiceProvider serviceProvider)
         {
+            // AddCommandFilter(view, new KeyBindingCommandFilter(view));            // #eiichi
+
+            MyBookmarkManager.SetView(view, serviceProvider);            // #eiichi
+
             _textDocumentFactory = textDocumentFactory;
             _view = view;
             _layer = view.GetAdornmentLayer("CommentImageAdornmentLayer");
@@ -110,7 +143,7 @@ namespace MyBookmark
             _contentTypeName = e.AfterContentType.TypeName;
         }
 
-        internal void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+        internal void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)          // #eiichi OnLayoutChanged
         {
             try
             {
@@ -161,6 +194,12 @@ namespace MyBookmark
             _timer.Start();
         }
 
+        // #eiichi start　MakeBookmark
+        private void MakeBookmark(string filepath)
+        {
+        }
+        // #eiichi end MakeBookmark
+
         private void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             _timer.Stop();
@@ -168,11 +207,19 @@ namespace MyBookmark
             Application.Current.Dispatcher.Invoke(() =>
             {
                 string filepath = null;
+                ITextDocument textDocument;
                 if (_textDocumentFactory != null &&
-                _textDocumentFactory.TryGetTextDocument(_view.TextBuffer, out ITextDocument textDocument))
+                _textDocumentFactory.TryGetTextDocument(_view.TextBuffer, out textDocument))
                 {
                     filepath = textDocument.FilePath;
                 }
+
+                // #eiichi start　bookmark 更新
+                /* if (!_editedLines.IsEmpty)
+                {
+                    MakeBookmark(filepath);
+                } */
+                // #eiichi end
 
                 foreach (var kvp in _editedLines)
                 {
@@ -190,7 +237,7 @@ namespace MyBookmark
             });
         }
 
-        private void CreateVisuals(ITextViewLine line, int lineNumber, string filepath)
+        private void CreateVisuals(ITextViewLine line, int lineNumber, string filepath)     // #eiichi CreateVisuals
         {
             try
             {

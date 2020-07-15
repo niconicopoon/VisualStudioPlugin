@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Events;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
 using Task = System.Threading.Tasks.Task;
@@ -72,7 +73,6 @@ namespace MyBookmark
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await MyBookmarkWindowCommand.InitializeAsync(this);
         }
-
         #endregion
     }
 }

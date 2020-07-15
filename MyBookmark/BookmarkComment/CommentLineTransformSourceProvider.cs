@@ -25,7 +25,7 @@ namespace MyBookmark
       [Import]
       internal SVsServiceProvider ServiceProvider = null;
 
-      ILineTransformSource ILineTransformSourceProvider.Create(IWpfTextView view)
+      ILineTransformSource ILineTransformSourceProvider.Create(IWpfTextView view)       // #eiichi cpp,h が開くときに呼ばれる
       {
          var manager = view.Properties.GetOrCreateSingletonProperty(() => new CommentsAdornment(view, TextDocumentFactory , ServiceProvider));
          return new CommentLineTransformSource(manager);
