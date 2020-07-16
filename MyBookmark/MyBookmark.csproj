@@ -68,6 +68,7 @@
     <Compile Include="BookmarkComment\UIMessage.cs" />
     <Compile Include="KeyBindingCommandFilter.cs" />
     <Compile Include="MyBookmarkManager.cs" />
+    <Compile Include="Properties\Guids.cs" />
     <Compile Include="VariableExpander.cs" />
     <Compile Include="MyBookmarkWindow.cs" />
     <Compile Include="MyBookmarkWindowCommand.cs" />
@@ -89,6 +90,7 @@
     <Content Include="index.html" />
     <VSCTCompile Include="MyBookmarkWindowPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
     <Content Include="Resources\BookmarkCommand.png" />
     <Content Include="Resources\MyBookmarkSolution.ico" />

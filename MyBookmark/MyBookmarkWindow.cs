@@ -15,7 +15,7 @@
     /// implementation of the IVsUIElementPane interface.
     /// </para>
     /// </remarks>
-    [Guid("7a4ff12d-c8e1-4617-aa99-f897be4df08a")]
+    [Guid("D183EA1B-C791-4DB4-9823-F48BC6A2810D")]
     public class MyBookmarkWindow : ToolWindowPane
     {
         /// <summary>

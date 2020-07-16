@@ -22,7 +22,7 @@ namespace MyBookmark
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("6788f114-196a-46f6-a24b-d690cd8cb467");
+        public static readonly Guid CommandSet = new Guid("2b98b6b6-edb3-4c1e-b45a-2df292df5a68");
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -41,7 +41,7 @@ namespace MyBookmark
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
-            var menuItem = new MenuCommand(this.Execute, StandardCommands.F1Help);
+            var menuItem = new MenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
         }
 

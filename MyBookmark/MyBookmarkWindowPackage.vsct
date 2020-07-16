@@ -15,10 +15,10 @@
         defining some of the constants that we will use inside the file. -->
 
   <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
-  <Extern href="stdidcmd.h" />
+  <Extern href="stdidcmd.h"/>
 
   <!--This header contains the command ids for the menus provided by the shell. -->
-  <Extern href="vsshlids.h" />
+  <Extern href="vsshlids.h"/>
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
@@ -43,17 +43,10 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
       <Button guid="guidMyBookmarkWindowPackageCmdSet" id="MyBookmarkWindowCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>MyBookmarkWindow</ButtonText>
-        </Strings>
-      </Button>
-      <Button guid="guidMyBookmarkWindowPackageCmdSet1" id="cmdidBookmarkCommand" priority="0x0100" type="Button">
-        <Parent guid="guidMyBookmarkWindowPackageCmdSet1" id="MyMenuGroup" />
-        <Icon guid="guidImages1" id="bmpPic1" />
-        <Strings>
-          <ButtonText>Invoke BookmarkCommand</ButtonText>
+          <ButtonText>Operation Progress Tool Window</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -65,40 +58,20 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\MyBookmarkWindowCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
-      <Bitmap guid="guidImages1" href="Resources\BookmarkCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
+      <Bitmap guid="guidImages" href="Resources\MyBookmarkWindowCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
     </Bitmaps>
-    <Groups>
-      <Group guid="guidMyBookmarkWindowPackageCmdSet1" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
-      </Group>
-    </Groups>
   </Commands>
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidMyBookmarkWindowPackage" value="{2fc6e57a-abd7-4ddd-bfc7-a239f90b4d2e}" />
+    <GuidSymbol name="guidMyBookmarkWindowPackage" value="{54e9361a-1a6f-41be-8a6e-9b1581a493b1}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidMyBookmarkWindowPackageCmdSet" value="{6788f114-196a-46f6-a24b-d690cd8cb467}">
+    <GuidSymbol name="guidMyBookmarkWindowPackageCmdSet" value="{2b98b6b6-edb3-4c1e-b45a-2df292df5a68}">
       <IDSymbol name="MyBookmarkWindowCommandId" value="0x0100" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidImages" value="{5a0a9512-7779-423d-942e-c12e8a971709}">
-      <IDSymbol name="bmpPic1" value="1" />
-      <IDSymbol name="bmpPic2" value="2" />
-      <IDSymbol name="bmpPicSearch" value="3" />
-      <IDSymbol name="bmpPicX" value="4" />
-      <IDSymbol name="bmpPicArrows" value="5" />
-      <IDSymbol name="bmpPicStrikethrough" value="6" />
-    </GuidSymbol>
-  
-    <GuidSymbol value="{bfc5fa74-4ee7-45e4-815a-3a9de8110f3d}" name="guidMyBookmarkWindowPackageCmdSet1">
-      <IDSymbol value="4128" name="MyMenuGroup" />
-      <IDSymbol value="256" name="cmdidBookmarkCommand" />
-    </GuidSymbol>
-  
-    <GuidSymbol value="{e24e2296-cde5-481f-9ac6-f0f046d4c7b2}" name="guidImages1">
+    <GuidSymbol name="guidImages" value="{458b18ad-fc07-46be-8b8e-202194e96cc1}" >
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
       <IDSymbol name="bmpPicSearch" value="3" />
