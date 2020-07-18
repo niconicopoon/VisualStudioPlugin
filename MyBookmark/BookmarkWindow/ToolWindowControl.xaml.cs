@@ -5,14 +5,14 @@
     using System.Windows.Controls;
 
     /// <summary>
-    /// Interaction logic for MyBookmarkWindowControl.
+    /// Interaction logic for ToolWindowControl.
     /// </summary>
-    public partial class MyBookmarkWindowControl : UserControl
+    public partial class ToolWindowControl : UserControl
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="MyBookmarkWindowControl"/> class.
+        /// Initializes a new instance of the <see cref="ToolWindowControl"/> class.
         /// </summary>
-        public MyBookmarkWindowControl()
+        public ToolWindowControl()
         {
             this.InitializeComponent();
 

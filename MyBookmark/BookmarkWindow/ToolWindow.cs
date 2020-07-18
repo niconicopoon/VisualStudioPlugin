@@ -16,19 +16,19 @@
     /// </para>
     /// </remarks>
     [Guid("D183EA1B-C791-4DB4-9823-F48BC6A2810D")]
-    public class MyBookmarkWindow : ToolWindowPane
+    public class ToolWindow : ToolWindowPane
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MyBookmarkWindow"/> class.
         /// </summary>
-        public MyBookmarkWindow() : base(null)
+        public ToolWindow() : base(null)
         {
             this.Caption = "MyBookmarkWindow";
 
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
             // the object returned by the Content property.
-            this.Content = new MyBookmarkWindowControl();
+            this.Content = new ToolWindowControl();
         }
     }
 }

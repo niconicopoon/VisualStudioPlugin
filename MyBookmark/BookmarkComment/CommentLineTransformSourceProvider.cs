@@ -27,7 +27,7 @@ namespace MyBookmark
 
       ILineTransformSource ILineTransformSourceProvider.Create(IWpfTextView view)       // #eiichi cpp,h が開くときに呼ばれる
       {
-         var manager = view.Properties.GetOrCreateSingletonProperty(() => new CommentsAdornment(view, TextDocumentFactory , ServiceProvider));
+         var manager = view.Properties.GetOrCreateSingletonProperty(() => new CommentsManager(view, TextDocumentFactory , ServiceProvider));
          return new CommentLineTransformSource(manager);
       }
    }

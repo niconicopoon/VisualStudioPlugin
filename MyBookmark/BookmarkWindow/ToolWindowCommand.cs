@@ -12,7 +12,7 @@ namespace MyBookmark
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class MyBookmarkWindowCommand
+    internal sealed class ToolWindowCommand
     {
         /// <summary>
         /// Command ID.
@@ -30,12 +30,12 @@ namespace MyBookmark
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MyBookmarkWindowCommand"/> class.
+        /// Initializes a new instance of the <see cref="ToolWindowCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private MyBookmarkWindowCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private ToolWindowCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -48,7 +48,7 @@ namespace MyBookmark
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static MyBookmarkWindowCommand Instance
+        public static ToolWindowCommand Instance
         {
             get;
             private set;
@@ -71,12 +71,12 @@ namespace MyBookmark
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in MyBookmarkWindowCommand's constructor requires
+            // Switch to the main thread - the call to AddCommand in ToolWindowCommand's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
-            Instance = new MyBookmarkWindowCommand(package, commandService);
+            Instance = new ToolWindowCommand(package, commandService);
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace MyBookmark
             // Get the instance number 0 of this tool window. This window is single instance so this instance
             // is actually the only one.
             // The last flag is set to true so that if the tool window does not exists it will be created.
-            ToolWindowPane window = this.package.FindToolWindow(typeof(MyBookmarkWindow), 0, true);
+            ToolWindowPane window = this.package.FindToolWindow(typeof(ToolWindow), 0, true);
             if ((null == window) || (null == window.Frame))
             {
                 throw new NotSupportedException("Cannot create tool window");

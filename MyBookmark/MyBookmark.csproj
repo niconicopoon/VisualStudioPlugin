@@ -59,23 +59,25 @@
     <Compile Include="BookmarkComment\CommentLineTransformSource.cs" />
     <Compile Include="BookmarkComment\CommentLineTransformSourceProvider.cs" />
     <Compile Include="BookmarkComment\CommentRichTextBox.cs" />
-    <Compile Include="BookmarkComment\CommentsAdornment.cs" />
-    <Compile Include="BookmarkComment\CommentsAdornmentTextViewCreationListener.cs" />
+    <Compile Include="BookmarkComment\CommentsManager.cs" />
+    <Compile Include="BookmarkComment\CommentsManagerTextViewCreationListener.cs" />
     <Compile Include="BookmarkComment\ContentTypes.cs" />
     <Compile Include="BookmarkComment\ErrorTaggerProvider.cs" />
     <Compile Include="BookmarkComment\ExceptionHandler.cs" />
     <Compile Include="BookmarkComment\ImageCache.cs" />
     <Compile Include="BookmarkComment\UIMessage.cs" />
-    <Compile Include="KeyBindingCommandFilter.cs" />
-    <Compile Include="MyBookmarkManager.cs" />
+    <Compile Include="BookmarkWindow\ToolWindowVisibility.cs" />
+    <Compile Include="BookmarkGomi\KeyBindingCommandFilter.cs" />
+    <Compile Include="BookmarkManager\MyBookmarkManager.cs" />
     <Compile Include="Properties\Guids.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="VariableExpander.cs" />
-    <Compile Include="MyBookmarkWindow.cs" />
-    <Compile Include="MyBookmarkWindowCommand.cs" />
-    <Compile Include="MyBookmarkWindowControl.xaml.cs">
-      <DependentUpon>MyBookmarkWindowControl.xaml</DependentUpon>
+    <Compile Include="BookmarkWindow\ToolWindow.cs" />
+    <Compile Include="BookmarkWindow\ToolWindowCommand.cs" />
+    <Compile Include="BookmarkWindow\ToolWindowControl.xaml.cs">
+      <DependentUpon>ToolWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MyBookmarkWindowPackage.cs" />
+    <Compile Include="MyPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -88,14 +90,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
-    <VSCTCompile Include="MyBookmarkWindowPackage.vsct">
+    <VSCTCompile Include="MyPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
     <Content Include="Resources\BookmarkCommand.png" />
     <Content Include="Resources\MyBookmarkSolution.ico" />
-    <Content Include="Resources\MyBookmarkWindowCommand.png" />
-    <Content Include="Resources\MyBookmarkWindowPackage.ico" />
+    <Content Include="Resources\ToolWindowCommand.png" />
+    <Content Include="Resources\MyPackage.ico" />
     <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
@@ -213,7 +215,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="MyBookmarkWindowControl.xaml">
+    <Page Include="BookmarkWindow\ToolWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -5,9 +5,9 @@ namespace MyBookmark
 {
     internal class CommentLineTransformSource : ILineTransformSource
     {
-        private CommentsAdornment _adornment;
+        private CommentsManager _adornment;
 
-        public CommentLineTransformSource(CommentsAdornment adornment)
+        public CommentLineTransformSource(CommentsManager adornment)
         {
             _adornment = adornment;
         }
@@ -17,10 +17,11 @@ namespace MyBookmark
            double yPosition,
            ViewRelativePosition placement)
         {
+            // #hang_no 5
             var lineNumber = line.Snapshot.GetLineFromPosition(line.Start.Position).LineNumber;
 
             // Look up Image for current line and increase line height as necessary
-            if (CommentsAdornment.Enabled)
+            if (CommentsManager.Enabled)
             {
                 var defaultHeight = line.DefaultLineTransform.BottomSpace;
                 if ( _adornment.Images.ContainsKey(lineNumber) &&

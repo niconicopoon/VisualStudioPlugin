@@ -24,7 +24,7 @@ namespace MyBookmark
      ContentType(ContentTypes.Python),
      ContentType(ContentTypes.Java)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class CommentsAdornmentTextViewCreationListener : IWpfTextViewCreationListener
+    internal sealed class CommentsManagerTextViewCreationListener : IWpfTextViewCreationListener
     {
         // Disable "Field is never assigned to..." and "Field is never used" compiler's warnings. Justification: the field is used by MEF.
 #pragma warning disable 649, 169
@@ -59,7 +59,7 @@ namespace MyBookmark
         public void TextViewCreated(IWpfTextView textView)                    // TEXT view を作成
         {
             AddCommandFilter(textView, new KeyBindingCommandFilter(textView));
-            textView.Properties.GetOrCreateSingletonProperty(() => new CommentsAdornment(textView, TextDocumentFactory, ServiceProvider));
+            textView.Properties.GetOrCreateSingletonProperty(() => new CommentsManager(textView, TextDocumentFactory, ServiceProvider));
         }
 
         void AddCommandFilter(IWpfTextView textView, KeyBindingCommandFilter commandFilter)

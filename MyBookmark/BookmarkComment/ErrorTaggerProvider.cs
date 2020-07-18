@@ -41,7 +41,7 @@ namespace MyBookmark
 
          Trace.Assert(textView is IWpfTextView);
 
-         var imageAdornmentManager = textView.Properties.GetOrCreateSingletonProperty(() => new CommentsAdornment((IWpfTextView)textView, TextDocumentFactory, ServiceProvider));
+         var imageAdornmentManager = textView.Properties.GetOrCreateSingletonProperty(() => new CommentsManager((IWpfTextView)textView, TextDocumentFactory, ServiceProvider));
          return imageAdornmentManager as ITagger<T>;
       }
    }

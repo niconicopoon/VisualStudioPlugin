@@ -34,7 +34,7 @@ namespace MyBookmark
     /// <summary>
     /// CommentsAdornment places red boxes behind all the "a"s in the editor window
     /// </summary>
-    internal sealed class CommentsAdornment : ITagger<ErrorTag>, IDisposable
+    internal sealed class CommentsManager : ITagger<ErrorTag>, IDisposable
     {
         // [Import(typeof(IVsEditorAdaptersFactoryService))]
         // internal IVsEditorAdaptersFactoryService editorFactory = null;
@@ -43,7 +43,7 @@ namespace MyBookmark
         /// Initializes a new instance of the <see cref="CommentsAdornment"/> class.
         /// </summary>
         /// <param name="view">Text view to create the adornment for</param>
-        static CommentsAdornment()
+        static CommentsManager()
         {
             Enabled = true;
         }
@@ -56,6 +56,7 @@ namespace MyBookmark
         }
 
         public static bool Enabled { get; set; }
+        public IWpfTextView GetView() { return _view; }
 
         public ConcurrentDictionary<int, CommentImage> Images { get; set; }
         public ConcurrentDictionary<int, CommentRichTextBox> RichTextBoxs { get; set; }     // #eiichi
@@ -107,15 +108,18 @@ namespace MyBookmark
             }
         } */
 
-        public CommentsAdornment(IWpfTextView view, ITextDocumentFactoryService textDocumentFactory, SVsServiceProvider serviceProvider)
+        public CommentsManager(IWpfTextView view, ITextDocumentFactoryService textDocumentFactory, SVsServiceProvider serviceProvider)
         {
             // AddCommandFilter(view, new KeyBindingCommandFilter(view));            // #eiichi
 
-            MyBookmarkManager.SetView(view, serviceProvider);            // #eiichi
-
+            // #hang_no 1 コメントアウトしたらハングしなかった
             _textDocumentFactory = textDocumentFactory;
             _view = view;
             _layer = view.GetAdornmentLayer("CommentImageAdornmentLayer");
+
+            // #hang_no 2
+            MyBookmarkManager.SetView(this, serviceProvider);            // #eiichi
+
             Images = new ConcurrentDictionary<int, CommentImage>();                 // #Image Images = new ConcurrentDictionary
             RichTextBoxs = new ConcurrentDictionary<int, CommentRichTextBox>();     // #eiichi
 
@@ -128,14 +132,24 @@ namespace MyBookmark
             _variableExpander = new VariableExpander(_view, serviceProvider);
 
             _timer.Elapsed += _timer_Elapsed;
+        }
 
+        public void SetBookmark(BookmarkPrims bookmarkPrims)
+        {
+            RichTextBoxs.Clear();
 
-            CommentRichTextBox TextBox = new CommentRichTextBox(_variableExpander);
-            TextBox.Document.Blocks.FirstBlock.LineHeight = 1;
-            TextBox.Width = TextBox.MaxWidth = 1024;
-            TextBox.Height = TextBox.Height = 130;
-            TextBox.AppendText("test test test\nabc abc acb");
-            RichTextBoxs.TryAdd(10, TextBox);
+            System.Windows.Forms.RichTextBox rtb = new System.Windows.Forms.RichTextBox();
+            rtb.AppendText(@"AAAAA\r\nBBBBB\r\nCCCCC");
+            int fonth =     rtb.GetPositionFromCharIndex(rtb.GetFirstCharIndexFromLine(1)).Y -
+                            rtb.GetPositionFromCharIndex(rtb.GetFirstCharIndexFromLine(0)).Y;
+
+            foreach (var it in bookmarkPrims)
+            {
+                CommentRichTextBox TextBox = new CommentRichTextBox(it.Value);
+                TextBox.Width = 1024;
+                TextBox.Height = fonth * Util.getLineNum(it.Value.m_comment);
+                RichTextBoxs.TryAdd(it.Key, TextBox);
+            }
         }
 
         private void OnContentTypeChanged(object sender, ContentTypeChangedEventArgs e)
@@ -145,6 +159,7 @@ namespace MyBookmark
 
         internal void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)          // #eiichi OnLayoutChanged
         {
+            // #hang_no 3
             try
             {
                 if (!Enabled)
@@ -194,16 +209,11 @@ namespace MyBookmark
             _timer.Start();
         }
 
-        // #eiichi start　MakeBookmark
-        private void MakeBookmark(string filepath)
-        {
-        }
-        // #eiichi end MakeBookmark
-
         private void _timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             _timer.Stop();
 
+            // #hang_no 2
             Application.Current.Dispatcher.Invoke(() =>
             {
                 string filepath = null;
@@ -213,13 +223,6 @@ namespace MyBookmark
                 {
                     filepath = textDocument.FilePath;
                 }
-
-                // #eiichi start　bookmark 更新
-                /* if (!_editedLines.IsEmpty)
-                {
-                    MakeBookmark(filepath);
-                } */
-                // #eiichi end
 
                 foreach (var kvp in _editedLines)
                 {
@@ -239,6 +242,7 @@ namespace MyBookmark
 
         private void CreateVisuals(ITextViewLine line, int lineNumber, string filepath)     // #eiichi CreateVisuals
         {
+            // #hang_no 4
             try
             {
                 // #eiichi start
@@ -249,11 +253,9 @@ namespace MyBookmark
                     var span = new SnapshotSpan(_view.TextSnapshot, Span.FromBounds(start, end));
 
                     CommentRichTextBox TextBox = RichTextBoxs[lineNumber];
-                    TextBox.Document.Blocks.FirstBlock.LineHeight = 1;
-                    TextBox.Width = TextBox.MaxWidth = 1024;
-                    TextBox.Height = TextBox.Height = 130;
-                    TextBox.AppendText("test test test\nabc abc acb");
-                    AddAdorment(TextBox, line, lineNumber, span);
+                    // TextBox.Document.Blocks.FirstBlock.LineHeight = 1;
+                    // TextBox.AppendText("test test test\nabc abc acb");
+                    AddComment(TextBox, line, lineNumber, span);
                 }
                 // #eiichi end
 
@@ -366,7 +368,10 @@ namespace MyBookmark
                 else
                 {
                     Images.TryRemove(lineNumber, out var commentImage);
-                    commentImage.Dispose();
+                    if (commentImage != null)           // #hang_this これ入れないとハングする
+                    {
+                        commentImage.Dispose();
+                    }
                 }
             }
             catch (Exception ex)
@@ -410,16 +415,6 @@ namespace MyBookmark
 
         private void ProcessImage(CommentImage image, string imageUrl, string originalUrl, ITextViewLine line, int lineNumber, SnapshotSpan span, double scale, string filepath)
         {
-            // CommentImageTest ImagTest = new CommentImageTest();
-            // Image ImagTest = new Image();
-            // AddAdorment(ImagTest, line, lineNumber, span);
-            // FlowDocument myFlowDoc = new FlowDocument();
-            // myFlowDoc.Blocks.Add(new Paragraph(new Run("Paragraph 1")));
-            // myFlowDoc.Blocks.Add(new Paragraph(new Run("Paragraph 2")));
-            // myFlowDoc.Blocks.Add(new Paragraph(new Run("Paragraph 3")));
-            // RichTextBox TextBox = new RichTextBox();
-            // TextBox.Document = myFlowDoc;
-
             try
             {
                 var result = image.TrySet(
@@ -432,13 +427,7 @@ namespace MyBookmark
                 // Position image and add as adornment
                 if (imageLoadingException == null)
                 {
-                    /* RichTextBox TextBox = new RichTextBox();
-                    TextBox.Document.Blocks.FirstBlock.LineHeight = 1;
-                    TextBox.Width = TextBox.MaxWidth = 1024;
-                    TextBox.Height = TextBox.Height = 130;
-                    TextBox.AppendText("test test test\nabc abc acb");
-                    AddAdorment(TextBox, line, lineNumber, span); */
-                    AddAdorment(image, line, lineNumber, span);
+                    AddComment(image, line, lineNumber, span);
                 }
                 else
                 {
@@ -457,7 +446,7 @@ namespace MyBookmark
             }
         }
 
-        private void AddAdorment(UIElement element, ITextViewLine line, int lineNumber, SnapshotSpan span)
+        private void AddComment(UIElement element, ITextViewLine line, int lineNumber, SnapshotSpan span)
         {
             Geometry geometry = null;
             try
