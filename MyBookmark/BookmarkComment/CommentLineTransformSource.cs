@@ -31,7 +31,7 @@ namespace MyBookmark
                 }
                 if (_adornment.RichTextBoxs.ContainsKey(lineNumber))        // #eiichi LineTransform
                 {
-                    return new LineTransform(0, _adornment.RichTextBoxs[lineNumber].Height + defaultHeight, 1.0);
+                   return new LineTransform(0, _adornment.RichTextBoxs[lineNumber].Height + defaultHeight, 1.0);
                 }
             }
             return new LineTransform(0, 0, 1.0);

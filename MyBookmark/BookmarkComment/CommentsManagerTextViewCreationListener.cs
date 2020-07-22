@@ -58,11 +58,11 @@ namespace MyBookmark
         /// <param name="textView">The <see cref="IWpfTextView"/> upon which the adornment should be placed</param>
         public void TextViewCreated(IWpfTextView textView)                    // TEXT view を作成
         {
-            AddCommandFilter(textView, new KeyBindingCommandFilter(textView));
+            // AddCommandFilter(textView, new KeyBindingCommandFilter(textView));
             textView.Properties.GetOrCreateSingletonProperty(() => new CommentsManager(textView, TextDocumentFactory, ServiceProvider));
         }
 
-        void AddCommandFilter(IWpfTextView textView, KeyBindingCommandFilter commandFilter)
+        /* void AddCommandFilter(IWpfTextView textView KeyBindingCommandFilter commandFilter)
         {
             if (commandFilter.m_added == false)
             {
@@ -80,7 +80,7 @@ namespace MyBookmark
                         commandFilter.m_nextTarget = next;
                 }
             }
-        }
+        } */
         #endregion
     }
 }

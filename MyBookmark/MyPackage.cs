@@ -89,7 +89,7 @@ namespace MyBookmark
 
         private void OnBookmarkAddCommand(object sender, EventArgs e)
         {
-            MyBookmarkManager.GetInstance().AddBookmark();
+            MyBookmarkManager.GetInstance().AddEditBookmark();
 
             // Toggle the checked state of this command
             /* MenuCommand thisCommand = sender as MenuCommand;

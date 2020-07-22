@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using System.ComponentModel.Design;
+using System.Windows.Forms;
 
 namespace MyBookmark
 {
@@ -25,28 +26,91 @@ namespace MyBookmark
         public string m_comment;       // ブックマークのコメント
         public string m_that;          // その行の文字列
         public string m_next;          // 次の行の文字列
+
+        public void Serialize(BinaryWriter writer)
+        {
+            writer.Write(m_comment);
+            writer.Write(m_that);
+            writer.Write(m_next);
+        }
+
+        public void Deserialize(BinaryReader reader)
+        {
+            m_comment = reader.ReadString();
+            m_that = reader.ReadString();
+            m_next = reader.ReadString();
+        }
     }
 
     class BookmarkPrims : ConcurrentDictionary<int, BookmarkPrim>
     {
-       private CommentsManager m_CommentsManager;
+        private CommentsManager m_CommentsManager;
 
         public CommentsManager GetCommentsManager()
         {
             return m_CommentsManager;
         }
 
-        public BookmarkPrims(CommentsManager commentsManager)
+        public void SetCommentsManager(CommentsManager commentsManager)
         {
             m_CommentsManager = commentsManager;
         }
-    }
-    class FileBookmarkPrims : ConcurrentDictionary<string, BookmarkPrims> { }
 
+        public BookmarkPrims(CommentsManager commentsManager)
+        {
+            SetCommentsManager(commentsManager);
+        }
+
+
+        public void Serialize(BinaryWriter writer)
+        {
+            writer.Write((int)this.Count);
+            foreach (var it in this)
+            {
+                writer.Write(it.Key);
+                it.Value.Serialize(writer);
+            }
+        }
+        public void Deserialize(BinaryReader reader)
+        {
+            int ct = reader.ReadInt32();
+            for (int i = 0; i < ct; i++)
+            {
+                int key = reader.ReadInt32();
+                BookmarkPrim bookmarkPrim = new BookmarkPrim();
+                bookmarkPrim.Deserialize(reader);
+                this.TryAdd(key, bookmarkPrim);
+            }
+        }
+    }
+
+    class FileBookmarkPrims : ConcurrentDictionary<string, BookmarkPrims>
+    {
+        public void Serialize(BinaryWriter writer)
+        {
+            writer.Write(this.Count);
+            foreach(var it in this)
+            {
+                writer.Write(it.Key);
+                it.Value.Serialize(writer);
+            }
+        }
+        public void Deserialize(BinaryReader reader)
+        {
+            int ct = reader.ReadInt32();
+            for (int i = 0; i < ct; i++)
+            {
+                string key = reader.ReadString();
+                BookmarkPrims bookmarkPrims = new BookmarkPrims(null);
+                bookmarkPrims.Deserialize(reader);
+                this.TryAdd(key, bookmarkPrims);
+            }
+        }
+    }
 
     class MyBookmarkManager
     {
-        public static IWpfTextView s_CurView;
+        // public static IWpfTextView s_CurView;
         public static DTE s_dte;
 
         public FileBookmarkPrims m_FileBookmarkPrims { get; set; }
@@ -88,19 +152,35 @@ namespace MyBookmark
 
         public void CreateBookmarkPrims(CommentsManager commentsManager)
         {
+            BookmarkPrims bookmarkPrims = null;
             if (!m_FileBookmarkPrims.ContainsKey(s_fileName))
             {
-                BookmarkPrims bookmarkPrims = new BookmarkPrims(commentsManager);
+                bookmarkPrims = new BookmarkPrims(commentsManager);
                 m_FileBookmarkPrims.TryAdd(s_fileName, bookmarkPrims);
+            } else
+            {
+                bookmarkPrims = m_FileBookmarkPrims[s_fileName];
+                bookmarkPrims.SetCommentsManager(commentsManager);
             }
+            commentsManager.SetBookmark(bookmarkPrims);
         }
 
         public BookmarkPrims GetBookmarkPrims()
         {
             return m_FileBookmarkPrims[s_fileName];
         }
+        
+        private void EditBookmark(BookmarkPrim prim)
+        {
+            CommentEditor commentEditor = new CommentEditor();
+            commentEditor.editTextBox.Text = prim.m_comment;
+            commentEditor.ShowDialog();
+            prim.m_comment = commentEditor.editTextBox.Text;
+            commentEditor.Dispose();
+        }
 
-        public void AddBookmark()
+        // ブックマークを追加、すでにあるなら edit する
+        public void AddEditBookmark()
         {
             // if (s_CurView == null) return;
 
@@ -108,18 +188,28 @@ namespace MyBookmark
             EnvDTE.TextSelection textSelection = GetTextSelection();
             if (textSelection != null)
             {
-                BookmarkPrim prim = new BookmarkPrim();
                 Int32 lineNo = GetCursorLineNo();
-                prim.m_comment = "test";
-                textSelection.SelectLine();
-                prim.m_that = textSelection.Text;
-                textSelection.GotoLine(lineNo+1);
-                textSelection.Cancel();
-                textSelection.SelectLine();
-                prim.m_next = textSelection.Text;
                 BookmarkPrims bookmarkPrims = GetBookmarkPrims();
-                bookmarkPrims.TryAdd(lineNo, prim);
+                BookmarkPrim prim = null;
+                if (bookmarkPrims.ContainsKey(lineNo))
+                {       // BookmarkPrim を edit する
+                    prim = bookmarkPrims[lineNo];
+                } else
+                {       // BookmarkPrim 作る
+                    prim = new BookmarkPrim();
+                    prim.m_comment = "test";
+                    textSelection.SelectLine();
+                    prim.m_that = textSelection.Text;
+                    textSelection.GotoLine(lineNo + 1);
+                    textSelection.Cancel();
+                    textSelection.SelectLine();
+                    prim.m_next = textSelection.Text;
+                    bookmarkPrims.TryAdd(lineNo, prim);
+                }
+                EditBookmark(prim);
+                bookmarkPrims[lineNo] = prim;
                 bookmarkPrims.GetCommentsManager().SetBookmark(bookmarkPrims);
+                Save();
             }
         }
 
@@ -129,14 +219,17 @@ namespace MyBookmark
 
             BookmarkPrim prim = null;
             BookmarkPrims bookmarkPrims = GetBookmarkPrims();
-            bookmarkPrims.TryRemove(GetCursorLineNo(), out prim);
-            bookmarkPrims.GetCommentsManager().SetBookmark(bookmarkPrims);
+            int lineNo = GetCursorLineNo();
+            bookmarkPrims.TryRemove(lineNo, out prim);
+            bookmarkPrims.GetCommentsManager().DelBookmark(lineNo);
+            Save();
         }
 
 
         //=================================================================================================
         // static
         static private MyBookmarkManager s_Instandce;
+        static private string s_bookmarkDirectory;
         static private string s_bookmarkFileName;
         static private string s_fileName;
         static private string s_projectDirectory;
@@ -146,23 +239,15 @@ namespace MyBookmark
         {
             return s_Instandce;
         }
+
+        /*
         public static bool BinarySerialize<T>(string filePath, T dataObject)
         {
             try
             {
-
-                FileStream fileStream =
-                    new FileStream(
-                        filePath,
-                        FileMode.Create);
-
-                BinaryFormatter binaryFormatter =
-                    new BinaryFormatter();
-
-                binaryFormatter.Serialize(
-                    fileStream,
-                    dataObject);
-
+                FileStream fileStream = new FileStream(filePath, FileMode.Create);
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                binaryFormatter.Serialize(fileStream, dataObject);
             }
             catch
             {
@@ -175,21 +260,10 @@ namespace MyBookmark
         {
             try
             {
-
-                FileStream fileStream =
-                    new FileStream(
-                        filePath,
-                        FileMode.Open);
-
-                BinaryFormatter binaryFormatter =
-                    new BinaryFormatter();
-
-                var obj =
-                    binaryFormatter.Deserialize(
-                        fileStream);
-
+                FileStream fileStream = new FileStream(filePath, FileMode.Open);
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                var obj = binaryFormatter.Deserialize(fileStream);
                 dataObject = (T)obj;
-
             }
             catch
             {
@@ -198,18 +272,62 @@ namespace MyBookmark
             }
             return true;
         }
+        */
 
+        public static bool Save()
+        {
+            try
+            {
+                FileStream fileStream = new FileStream(s_bookmarkFileName, FileMode.Create);
+                BinaryWriter writer = new BinaryWriter(fileStream);
+                s_Instandce.m_FileBookmarkPrims.Serialize(writer);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static bool Load()
+        {
+            try
+            {
+                s_Instandce = new MyBookmarkManager();
+                s_Instandce.m_FileBookmarkPrims = new FileBookmarkPrims();
+
+                FileStream fileStream = new FileStream(s_bookmarkFileName, FileMode.Open);
+                BinaryReader reader = new BinaryReader(fileStream);
+                s_Instandce.m_FileBookmarkPrims.Deserialize(reader);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+
+            // return BinaryDeserialize<MyBookmarkManager>(s_bookmarkFileName, out s_Instandce);      // ブックマーク読み込み
+        }
+
+        public static void CloseView(CommentsManager commentsManager)
+        {
+            if(commentsManager.m_FileName == s_fileName)
+            {
+                s_fileName = null;
+            }
+        }
 
         public static void SetView(CommentsManager commentsManager, SVsServiceProvider serviceProvider)
         {
             s_dte = (DTE)serviceProvider.GetService(typeof(DTE));
 
-            s_CurView = commentsManager.GetView();
-            s_CurView.TextDataModel.DocumentBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document);
+            // s_CurView = commentsManager.GetView();
 
+            commentsManager.GetView().TextDataModel.DocumentBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document);
             ProjectItem projectItem = s_dte.Solution.FindProjectItem(document.FilePath);
+
             string backFileName = s_fileName;
-            s_fileName = document.FilePath;
+            s_fileName = commentsManager.m_FileName;
 
             if (projectItem != null && projectItem.ContainingProject != null)
             {
@@ -234,20 +352,19 @@ namespace MyBookmark
                 {       // 新しい Solution が選択された
                     if (s_Instandce != null && s_bookmarkFileName != "")
                     {
-                        BinarySerialize<MyBookmarkManager>(s_bookmarkFileName, s_Instandce);        // ブックマーク書き込み
+                        Save();
                     }
 
                     s_solutionDirectory = solutionDirectory;
+
+                    s_bookmarkDirectory = @"C:\MyProj\temp\mbook\";
+                    Directory.CreateDirectory(s_bookmarkDirectory);
+
                     s_bookmarkFileName = s_solutionDirectory.Replace(':', '_');
                     s_bookmarkFileName = s_bookmarkFileName.Replace('\\', '-');
-                    s_bookmarkFileName = @"F:\MyProj\temp\mbook\" + s_bookmarkFileName + @".mbk";
-                    // Directory.CreateDirectory(s_bookmarkDirectory);
+                    s_bookmarkFileName = s_bookmarkDirectory + s_bookmarkFileName + @".mbk";
 
-                    BinaryDeserialize<MyBookmarkManager>(s_bookmarkFileName, out s_Instandce);      // ブックマーク読み込み
-                    if (s_Instandce == null)
-                    {
-                        s_Instandce = new MyBookmarkManager();
-                    }
+                    Load();
                 }
             }
 

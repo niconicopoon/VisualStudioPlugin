@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace MyBookmark
 {
+    /*
     internal class KeyBindingCommandFilter : IOleCommandTarget
     {
         private IWpfTextView m_textView;
@@ -39,4 +40,5 @@ namespace MyBookmark
             return m_nextTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }
     }
+    */
 }

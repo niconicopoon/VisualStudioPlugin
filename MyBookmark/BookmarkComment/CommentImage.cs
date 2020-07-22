@@ -8,7 +8,7 @@ namespace MyBookmark
 {
     public class CommentImage : Image, IDisposable
     {
-        private VariableExpander _variableExpander;
+        private Util _Util;
 
         /// <summary>
         /// Location from where the image was loaded.
@@ -46,9 +46,9 @@ namespace MyBookmark
             }
         }
 
-        public CommentImage(VariableExpander variableExpander) : base()
+        public CommentImage(Util Util) : base()
         {
-            _variableExpander = variableExpander ?? throw new ArgumentNullException("variableExpander");
+            _Util = Util ?? throw new ArgumentNullException("Util");
 
             fileSystemWatcher.Changed += FileSystemWatcher_Changed;
             fileSystemWatcher.Renamed += FileSystemWatcher_Changed;
@@ -59,7 +59,7 @@ namespace MyBookmark
             exception = null;
             try
             {
-                imageUrl = _variableExpander.ProcessText(imageUrl);
+                imageUrl = _Util.ProcessText(imageUrl);
                 Source = LoadImage(imageUrl, filepath);
                 Url = imageUrl;
                 OriginalUrl = originalUrl;
