@@ -133,9 +133,10 @@ namespace MyBookmark
             Images = new ConcurrentDictionary<int, CommentImage>();                 // #Image Images = new ConcurrentDictionary
             RichTextBoxs = new ConcurrentDictionary<int, CommentRichTextBox>();     // #eiichi
 
-            MyBookmarkManager.SetView(this, serviceProvider);
+            // MyBookmarkManager.SetView(this, serviceProvider);
 
             m_view.LayoutChanged += OnLayoutChanged;
+            m_view.GotAggregateFocus += delegate { MyBookmarkManager.SetView(this, serviceProvider); };
             m_view.Closed += delegate { MyBookmarkManager.CloseView(this); };
 
             m_contentTypeName = view.TextBuffer.ContentType.TypeName;
@@ -169,7 +170,7 @@ namespace MyBookmark
         return blockHeight;
     } */
 
-    private double GethDocumentHeight(Viewbox viewbox, CommentRichTextBox RichTextBox)
+        private double GethDocumentHeight(Viewbox viewbox, CommentRichTextBox RichTextBox)
         {
             viewbox.Child = RichTextBox;
             viewbox.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
