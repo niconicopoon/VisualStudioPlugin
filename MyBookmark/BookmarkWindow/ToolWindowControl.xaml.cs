@@ -1,6 +1,4 @@
-﻿
-
-namespace MyBookmark
+﻿namespace MyBookmark
 {
     using System.Diagnostics.CodeAnalysis;
     using System.Windows;
@@ -14,33 +12,11 @@ namespace MyBookmark
         /// <summary>
         /// Initializes a new instance of the <see cref="ToolWindowControl"/> class.
         /// </summary>
+        /// 
+
         public ToolWindowControl()
         {
             this.InitializeComponent();
-
-            // m_BookmarkTreeView
-        }
-
-        public void SetBookmarkTreeView()
-        {
-            System.Collections.Concurrent.ConcurrentDictionary<string, string> heads = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
-
-
-            foreach (var bookmarkPrimsIt in MyBookmarkManager.GetInstance().m_FileBookmarkPrims)
-            {
-                foreach (var bookmarkPrimIt in bookmarkPrimsIt.Value)
-                {
-                    /*
-                    bookmarkPrimIt.Value.line
-                    heads.
-
-
-                    m_BookmarkTreeView.
-.
-                    bookmarkPrimIt.Value.m_comment = 
-                    */
-                }
-            }
         }
 
         /// <summary>

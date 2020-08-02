@@ -54,6 +54,11 @@ namespace MyBookmark
             }
         }
 
+        public static string GetWithoutUselessCharacter(string str)
+        {
+            return str.Replace(Environment.NewLine, "").Replace(@"\t", "").Replace(@" ", "");
+        }
+
         public static int getLineNum(string s)
         {
             int len = s.Length;

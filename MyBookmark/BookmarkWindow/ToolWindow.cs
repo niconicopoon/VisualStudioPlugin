@@ -1,7 +1,6 @@
 ﻿namespace MyBookmark
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Runtime.InteropServices;
     using Microsoft.VisualStudio.Shell;
 
@@ -31,10 +30,5 @@
             // the object returned by the Content property.
             this.Content = new ToolWindowControl();
         }
-
-        /* public ToolWindowControl GetToolWindowControl()
-        {
-            return this.Content as ToolWindowControl;
-        } */
     }
 }

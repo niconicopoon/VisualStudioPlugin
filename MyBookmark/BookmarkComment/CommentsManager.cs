@@ -170,7 +170,7 @@ namespace MyBookmark
         return blockHeight;
     } */
 
-        private double GethDocumentHeight(Viewbox viewbox, CommentRichTextBox RichTextBox)
+    private double GethDocumentHeight(Viewbox viewbox, CommentRichTextBox RichTextBox)
         {
             viewbox.Child = RichTextBox;
             viewbox.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
