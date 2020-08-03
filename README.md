@@ -15,3 +15,14 @@
 
 #### ▲表示 => その他のウィンドウ => My Bookmark Tool Window  で MyBookmarkWindow が表示されます
 ![画像１](https://github.com/niconicopoon/VisualStudioPlugin/blob/master/MyBookmark/Document/3.png)
+
+#### ▲コメントの例
+* 最初の行の最初の単語は、MyBookmarkWindow のラベルになります
+* 最初の行は、MyBookmarkWindow に表示される文字列になります
+* コメントはマークダウン記法が使えます
+
+![画像１](https://github.com/niconicopoon/VisualStudioPlugin/blob/master/MyBookmark/Document/4.png)
+
+
+#### ↓検証用のデバッグプロジェクトです
+https://github.com/niconicopoon/VisualStudioPlugin/tree/master/MyBookmark/DebugProject
