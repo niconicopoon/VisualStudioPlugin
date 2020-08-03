@@ -233,17 +233,20 @@ namespace MyBookmark
             System.Windows.Forms.TreeView treeView = toolWindowControl.m_BookmarkTreeView; */
             var treeView = ToolWindowControl.GetBookmarkTreeView();
 
-            treeView.Items.Clear();
-            foreach (var label in labels)
+            if (treeView != null)
             {
-                TreeViewItem labelItem = new TreeViewItem();
-                labelItem.Header = label.Key.ToString();
-                treeView.Items.Add(labelItem);
-                foreach (var vBookmarkPrim in label.Value)
+                treeView.Items.Clear();
+                foreach (var label in labels)
                 {
-                    TreeViewItem item = new TreeViewItem();
-                    item.Header = vBookmarkPrim.m_BookmarkPrim.m_line + " [" + vBookmarkPrim.m_FileName + "]:" + vBookmarkPrim.m_LineNo;
-                    labelItem.Items.Add(item);
+                    TreeViewItem labelItem = new TreeViewItem();
+                    labelItem.Header = label.Key.ToString();
+                    treeView.Items.Add(labelItem);
+                    foreach (var vBookmarkPrim in label.Value)
+                    {
+                        TreeViewItem item = new TreeViewItem();
+                        item.Header = vBookmarkPrim.m_BookmarkPrim.m_line + " [" + vBookmarkPrim.m_FileName + "]:" + vBookmarkPrim.m_LineNo;
+                        labelItem.Items.Add(item);
+                    }
                 }
             }
         }
