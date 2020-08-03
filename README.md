@@ -1,6 +1,6 @@
 # VisualStudioPlugin
 
-### ▲プライベートのブックマークと、ブックマークにマークダウン書式のコメントを書けるプラグインです
+### ▲ブックマークにマークダウン書式のコメントを書けるプラグインです
 
 ![画像１](https://github.com/niconicopoon/VisualStudioPlugin/blob/master/MyBookmark/Document/1.png)
 
