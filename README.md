@@ -23,8 +23,8 @@
 
 ![画像１](https://github.com/niconicopoon/VisualStudioPlugin/blob/master/MyBookmark/Document/4.png)
 
-### Bookmark ファイルは
-* ソリューション/MyBookmark/MyBookmark.mbk  に保存されます
+### ▲Bookmarkファイル保存先
+* Bookmark ファイルは、 ソリューション/MyBookmark/MyBookmark.mbk  に保存されます
 
 #### ↓検証用のデバッグプロジェクトです　
 https://github.com/niconicopoon/VisualStudioPlugin/tree/master/MyBookmark/DebugProject
