@@ -19,6 +19,7 @@
 
         static public TreeView GetBookmarkTreeView()
         {
+            if (m_Instance == null) return null;
             return m_Instance.m_BookmarkTreeView;
         }
 
