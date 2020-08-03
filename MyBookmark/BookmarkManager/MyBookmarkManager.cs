@@ -465,12 +465,14 @@ namespace MyBookmark
                     SetFileName(commentsManager.m_FileName);
 
                     // s_bookmarkDirectory = @"C:\MyProj\temp\mbook\";
-                    s_bookmarkDirectory = s_solutionDirectory + @"\MyBookmark\";
+                    s_bookmarkDirectory = s_solutionDirectory + @"MyBookmark\";
                     Directory.CreateDirectory(s_bookmarkDirectory);
+                    s_bookmarkFileName = s_bookmarkDirectory + @"MyBookmark.mbk";
 
-                    s_bookmarkFileName = s_solutionDirectory.Replace(':', '_');
+                    /* s_bookmarkFileName = s_solutionDirectory.Substring(3);
+                    s_bookmarkFileName = s_bookmarkFileName.Replace(':', '_');
                     s_bookmarkFileName = s_bookmarkFileName.Replace('\\', '-');
-                    s_bookmarkFileName = s_bookmarkDirectory + s_bookmarkFileName + @".mbk";
+                    s_bookmarkFileName = s_bookmarkDirectory + s_bookmarkFileName + @".mbk"; */
 
                     Load(commentsManager);
                 }
