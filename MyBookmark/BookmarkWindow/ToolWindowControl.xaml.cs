@@ -1,5 +1,6 @@
 ﻿namespace MyBookmark
 {
+    using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Windows;
     using System.Windows.Controls;
@@ -14,8 +15,21 @@
         /// </summary>
         /// 
 
+        static ToolWindowControl m_Instance;
+
+        static public TreeView GetBookmarkTreeView()
+        {
+            return m_Instance.m_BookmarkTreeView;
+        }
+
+        static public ToolWindowControl GetInstance()
+        {
+            return m_Instance;
+        }
+
         public ToolWindowControl()
         {
+            m_Instance = this;
             this.InitializeComponent();
         }
 
@@ -31,6 +45,12 @@
             MessageBox.Show(
                 string.Format(System.Globalization.CultureInfo.CurrentUICulture, "Invoked '{0}'", this.ToString()),
                 "MyBookmarkWindow");
+        }
+
+        private void BookmarkTreeViewSelectionChanged(object sender, RoutedPropertyChangedEventArgs<Object> e)
+        {
+            // MessageBox.Show(((TreeViewItem)e.NewValue).Header.ToString());
+            MyBookmarkManager.Jump(((TreeViewItem)e.NewValue).Header.ToString());
         }
     }
 }

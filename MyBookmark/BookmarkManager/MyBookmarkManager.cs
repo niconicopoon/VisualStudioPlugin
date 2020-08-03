@@ -49,7 +49,7 @@ namespace MyBookmark
             int index = m_line.IndexOf(' ');
             if (index < 0)
             {
-                m_tag = "an";
+                m_tag = m_line;
             }
             else
             {
@@ -129,6 +129,37 @@ namespace MyBookmark
             return (EnvDTE.TextSelection)s_dte.ActiveDocument.Selection;
         }
 
+        static public void Jump(string str)
+        {
+            int idx = str.IndexOf('[');
+            if (idx >= 0)
+            {
+                idx++;
+                string fileName = str.Substring(idx);
+                int lineNo = int.Parse(fileName.Substring(fileName.IndexOf(':') + 1));
+                fileName = fileName.Substring(0, fileName.IndexOf(']'));
+
+                for (int docIndex = 1; docIndex <= s_dte.Documents.Count; docIndex++)
+                {
+                    Document document = s_dte.Documents.Item(docIndex);
+                    string docFileName = RelativeFileName(document.FullName);
+                    if (docFileName == fileName)
+                    {
+                        document.Activate();
+                        EnvDTE.TextSelection textSelection = (EnvDTE.TextSelection)(document.Selection);
+                        textSelection.GotoLine(lineNo, true);
+                        // for(int winIndex=1; winIndex<=document.Windows.Count; winIndex++)
+                        if (document.Windows.Count > 0)
+                        {
+                            document.Windows.Item(1).Activate();
+                        }
+                        // for(int winIndex=1; winIndex<= s_dte.Windows.Count; winIndex++)
+                        break;
+                    }
+                }
+            }
+        }
+
         static public int GetCursorLineNo()
         {
             // EnvDTE.TextPoint point = GetTextDocument().StartPoint;
@@ -162,32 +193,45 @@ namespace MyBookmark
             return m_FileBookmarkPrims[s_fileName];
         }
 
+        public struct VBookmarkPrim
+        {
+            public VBookmarkPrim(string fileName, int lineNo, BookmarkPrim bookmarkPrim)
+            {
+                m_FileName = fileName;
+                m_LineNo = lineNo;
+                m_BookmarkPrim = bookmarkPrim;
+            }
+            public string m_FileName;
+            public int m_LineNo;
+            public BookmarkPrim m_BookmarkPrim;
+        };
         public void RedrawToolWindow()
         {
-            ConcurrentDictionary<string, List<BookmarkPrim>> labels = new ConcurrentDictionary<string, List<BookmarkPrim>>();
+            ConcurrentDictionary<string, List<VBookmarkPrim>> labels = new ConcurrentDictionary<string, List<VBookmarkPrim>>();
 
             foreach(var bookmarkPrims in m_FileBookmarkPrims)
             {
-                foreach (var nookmarkPrimIt in bookmarkPrims.Value)
+                foreach (var bookmarkPrimIt in bookmarkPrims.Value)
                 {
-                    BookmarkPrim bookmarkPrim = nookmarkPrimIt.Value;
-                    List<BookmarkPrim> bookmarkPrimList = null;
+                    BookmarkPrim bookmarkPrim = bookmarkPrimIt.Value;
+                    List<VBookmarkPrim> bookmarkPrimList = null;
                     if (labels.ContainsKey(bookmarkPrim.m_tag))
                     {
                         bookmarkPrimList = labels[bookmarkPrim.m_tag];
                     }
                     else
                     {
-                        bookmarkPrimList = new List<BookmarkPrim>();
+                        bookmarkPrimList = new List<VBookmarkPrim>();
                         labels.TryAdd(bookmarkPrim.m_tag, bookmarkPrimList);
                     }
-                    bookmarkPrimList.Add(bookmarkPrim);
+                    VBookmarkPrim vBookmarkPrim = new VBookmarkPrim(bookmarkPrims.Key, bookmarkPrimIt.Key, bookmarkPrim);
+                    bookmarkPrimList.Add(vBookmarkPrim);
                 }
             }
 
-            // ToolWindowControl toolWindowControl = ToolWindowControl.GetInstance();
-            // TreeView treeView = toolWindowControl.m_BookmarkTreeView;
-            /* System.Windows.Controls.TreeView treeView = ToolWindowControl.GetBookmarkTreeView();
+            /* ToolWindowControl toolWindowControl = ToolWindowControl.GetInstance();
+            System.Windows.Forms.TreeView treeView = toolWindowControl.m_BookmarkTreeView; */
+            var treeView = ToolWindowControl.GetBookmarkTreeView();
 
             treeView.Items.Clear();
             foreach (var label in labels)
@@ -195,13 +239,13 @@ namespace MyBookmark
                 TreeViewItem labelItem = new TreeViewItem();
                 labelItem.Header = label.Key.ToString();
                 treeView.Items.Add(labelItem);
-                foreach (var BookmarkPrim in label.Value)
+                foreach (var vBookmarkPrim in label.Value)
                 {
                     TreeViewItem item = new TreeViewItem();
-                    item.Header = BookmarkPrim.m_line;
+                    item.Header = vBookmarkPrim.m_BookmarkPrim.m_line + " [" + vBookmarkPrim.m_FileName + "]:" + vBookmarkPrim.m_LineNo;
                     labelItem.Items.Add(item);
                 }
-            } */
+            }
         }
 
         private void EditBookmark(BookmarkPrim prim)
@@ -290,28 +334,27 @@ namespace MyBookmark
                         s.Write(json.ToString());
                     }
                 }
-
-
-                /* FileStream fileStream = new FileStream(s_bookmarkFileName, FileMode.Create);
-                var serializer = new DataContractJsonSerializer(typeof(MyBookmarkManager));
-                serializer.WriteObject(fileStream, (object)s_Instandce); */
-
-                /* FileStream fileStream = new FileStream(s_bookmarkFileName, FileMode.Create);
-                string jsonString;
-                jsonString = JsonSerializer.Serialize(s_Instandce.m_FileBookmarkPrims);
-                System.IO.StreamWriter sw = new System.IO.StreamWriter(s_bookmarkFileName);
-                sw.Write(jsonString);
-                sw.Close(); */
-
-                /* FileStream fileStream = new FileStream(s_bookmarkFileName, FileMode.Create);
-                BinaryWriter writer = new BinaryWriter(fileStream);
-                s_Instandce.m_FileBookmarkPrims.Serialize(writer); */
             }
             catch
             {
                 return false;
             }
             return true;
+        }
+
+        public static string RelativeFileName(string fileName)
+        {
+            int idx = fileName.IndexOf(s_solutionDirectory);
+            if (idx == 0)
+            {
+                fileName = fileName.Substring(s_solutionDirectory.Length);
+            }
+            return fileName;
+        }
+
+        public static void SetFileName(string fileName)
+        {
+            s_fileName = RelativeFileName(fileName);
         }
 
         public static bool Load(CommentsManager commentsManager)
@@ -333,7 +376,7 @@ namespace MyBookmark
                             {
                                 if(bpf == "Key")
                                 {
-                                    s_fileName = bpfjson[bpf];
+                                    SetFileName(bpfjson[bpf]);
                                 }
                                 else if (bpf == "Value")
                                 {
@@ -361,23 +404,8 @@ namespace MyBookmark
                             }
                         }
                     }
+                    s_Instandce.RedrawToolWindow();
                 }
-
-                /* FileStream fileStream = new FileStream(s_bookmarkFileName, FileMode.Open);
-                var serializer = new DataContractJsonSerializer(typeof(MyBookmarkManager));
-                s_Instandce = (MyBookmarkManager)serializer.ReadObject(fileStream); */
-
-                /* string jsonString;
-                System.IO.StreamReader sr = new System.IO.StreamReader(s_bookmarkFileName);
-                jsonString = sr.ReadToEnd();
-                sr.Close();
-                s_Instandce.m_FileBookmarkPrims = JsonSerializer.Deserialize<FileBookmarkPrims>(jsonString); */
-
-
-
-                /* FileStream fileStream = new FileStream(s_bookmarkFileName, FileMode.Open);
-                BinaryReader reader = new BinaryReader(fileStream);
-                s_Instandce.m_FileBookmarkPrims.Deserialize(reader); */
             }
             catch
             {
@@ -406,7 +434,6 @@ namespace MyBookmark
             ProjectItem projectItem = s_dte.Solution.FindProjectItem(document.FilePath);
 
             string backFileName = s_fileName;
-            s_fileName = commentsManager.m_FileName;
 
             if (projectItem != null && projectItem.ContainingProject != null)
             {
@@ -425,9 +452,9 @@ namespace MyBookmark
 
                 if (s_solutionDirectory == solutionDirectory)
                 {       // Solution は同じ
-                    
-
-                } else
+                    SetFileName(commentsManager.m_FileName);
+                }
+                else
                 {       // 新しい Solution が選択された
                     if (s_Instandce != null && s_bookmarkFileName != "")
                     {
@@ -435,8 +462,10 @@ namespace MyBookmark
                     }
 
                     s_solutionDirectory = solutionDirectory;
+                    SetFileName(commentsManager.m_FileName);
 
-                    s_bookmarkDirectory = @"C:\MyProj\temp\mbook\";
+                    // s_bookmarkDirectory = @"C:\MyProj\temp\mbook\";
+                    s_bookmarkDirectory = s_solutionDirectory + @"\MyBookmark\";
                     Directory.CreateDirectory(s_bookmarkDirectory);
 
                     s_bookmarkFileName = s_solutionDirectory.Replace(':', '_');
@@ -447,6 +476,7 @@ namespace MyBookmark
                 }
             }
 
+            SetFileName(commentsManager.m_FileName);
             if (s_fileName != backFileName)
             {
                 if (s_Instandce != null)

@@ -10,10 +10,8 @@
              d:DesignHeight="300" d:DesignWidth="300"
              Name="MyToolWindow">
     <Grid>
-        <StackPanel Orientation="Vertical">
-            <TextBlock Margin="10" HorizontalAlignment="Center">MyBookmarkWindow</TextBlock>
-            <TreeView x:Name="m_BookmarkTreeView" Height="100" VerticalAlignment="Top"/>
-            <Button Content="Click me!" Click="button1_Click" Height="97" x:Name="button1" Margin="125,0,90,0" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Bottom" VerticalContentAlignment="Center"/>
+        <StackPanel Orientation="Vertical" Margin="0,0,0,-19" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" CanHorizontallyScroll="True" CanVerticallyScroll="True">
+            <TreeView x:Name="m_BookmarkTreeView" SelectedItemChanged="BookmarkTreeViewSelectionChanged" RenderTransformOrigin="0.502,0.738" VerticalContentAlignment="Stretch"/>
         </StackPanel>
     </Grid>
 </UserControl>

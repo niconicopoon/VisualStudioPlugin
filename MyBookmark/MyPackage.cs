@@ -41,6 +41,7 @@ namespace MyBookmark
 
         public const int CommandIdIcmdBookmarkAddCommand = 0x101;
         public const int CommandIdIcmdBookmarkDelCommand = 0x102;
+        public const int CommandIdIcmdBookmarkOptCommand = 0x103;
 
         /// <summary>
         /// MyPackage GUID string.
@@ -73,6 +74,10 @@ namespace MyBookmark
                 cmd = new CommandID(GuidList.guidBookmarkCmdSet, CommandIdIcmdBookmarkDelCommand);
                 menuCmd = new MenuCommand(new EventHandler(OnBookmarkDelCommand), cmd);
                 mcs.AddCommand(menuCmd);
+
+                cmd = new CommandID(GuidList.guidBookmarkCmdSet, CommandIdIcmdBookmarkOptCommand);
+                menuCmd = new MenuCommand(new EventHandler(OnBookmarkOptCommand), cmd);
+                mcs.AddCommand(menuCmd);
             }
 
             bool isSolutionLoaded = await IsSolutionLoadedAsync();
@@ -100,6 +105,18 @@ namespace MyBookmark
         }
 
         private void OnBookmarkDelCommand(object sender, EventArgs e)
+        {
+            MyBookmarkManager.GetInstance().DelBookmark();
+
+            // Toggle the checked state of this command
+            /* MenuCommand thisCommand = sender as MenuCommand;
+            if (thisCommand != null)
+            {
+                thisCommand.Checked = !thisCommand.Checked;
+            } */
+        }
+
+        private void OnBookmarkOptCommand(object sender, EventArgs e)
         {
             MyBookmarkManager.GetInstance().DelBookmark();
 
