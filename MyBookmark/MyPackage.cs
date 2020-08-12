@@ -92,8 +92,11 @@ namespace MyBookmark
             await ToolWindowCommand.InitializeAsync(this);
         }
 
+        // #command OnBookmarkAddCommand
         private void OnBookmarkAddCommand(object sender, EventArgs e)
         {
+            MyBookmarkManager.Log("OnBookmarkAddCommand");
+
             MyBookmarkManager.GetInstance().AddEditBookmark();
 
             // Toggle the checked state of this command
@@ -104,8 +107,11 @@ namespace MyBookmark
             } */
         }
 
+        // #command OnBookmarkDelCommand
         private void OnBookmarkDelCommand(object sender, EventArgs e)
         {
+            MyBookmarkManager.Log("OnBookmarkDelCommand");
+
             MyBookmarkManager.GetInstance().DelBookmark();
 
             // Toggle the checked state of this command

@@ -34,11 +34,6 @@ namespace MyBookmark
         {
         }
 
-        protected override void OnMouseDoubleClick(MouseButtonEventArgs e)
-        {
-
-        }
-
         /* うまく入力できないから、別のエディターを用意する
         protected override void OnTextChanged(TextChangedEventArgs e)
         {

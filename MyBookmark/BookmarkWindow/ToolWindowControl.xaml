@@ -10,7 +10,16 @@
              d:DesignHeight="300" d:DesignWidth="300"
              Name="MyToolWindow">
     <Grid>
-        <StackPanel Orientation="Vertical" Margin="0,0,0,-19" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" CanHorizontallyScroll="True" CanVerticallyScroll="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0*"/>
+            <RowDefinition Height="41*"/>
+            <RowDefinition Height="9*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical" Margin="0,0,0,-19" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" CanHorizontallyScroll="True" CanVerticallyScroll="True" Grid.RowSpan="3">
             <TreeView x:Name="m_BookmarkTreeView" SelectedItemChanged="BookmarkTreeViewSelectionChanged" RenderTransformOrigin="0.502,0.738" VerticalContentAlignment="Stretch"/>
         </StackPanel>
     </Grid>

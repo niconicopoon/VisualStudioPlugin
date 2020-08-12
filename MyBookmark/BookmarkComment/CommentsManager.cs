@@ -149,6 +149,7 @@ namespace MyBookmark
             m_timer.Elapsed += _timer_Elapsed;
         }
 
+
         public void SetLineHeight(CommentRichTextBox rtb)
         {
             rtb.Width = 1024;
@@ -183,6 +184,8 @@ namespace MyBookmark
         {
             var pipeline = new Markdig.MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
             Viewbox viewbox = new Viewbox();
+
+            RichTextBoxs.Clear();
 
             foreach (var it in bookmarkPrims)
             {
@@ -222,6 +225,7 @@ namespace MyBookmark
 
         public void DelBookmark(int lineNo)
         {
+            MyBookmarkManager.Log("DelBookmark lineNo" + lineNo);
             lineNo -= 1;
             if (RichTextBoxs.ContainsKey(lineNo))
             {
@@ -287,6 +291,24 @@ namespace MyBookmark
                     return;
 
                 m_errorTags.Clear();
+
+                int dline = e.NewSnapshot.LineCount - e.OldSnapshot.LineCount;
+                if (dline != 0)
+                {
+                    foreach (ITextViewLine line in e.NewOrReformattedLines)
+                    {
+                        int editLineNumber = line.Snapshot.GetLineFromPosition(line.Start.Position).LineNumber;
+                        MyBookmarkManager.GetInstance().ChangeLine(editLineNumber + 1, dline);
+                        return;
+                    }
+
+                    /* foreach (ITextViewLine line in e.TranslatedLines)
+                    {
+                        int lineNumber = line.Snapshot.GetLineFromPosition(line.Start.Position).LineNumber;
+                        m_editedLines[lineNumber] = line;
+                    } */
+                }
+
                 RequestRedrawView();
 
                 foreach (ITextViewLine line in e.NewOrReformattedLines)
@@ -627,7 +649,7 @@ namespace MyBookmark
 
         private static string GetErrorMessage(Exception exception)
         {
-            Trace.WriteLine("Problem parsing comment text or loading image...\n" + exception);
+            MyBookmarkManager.Log("Problem parsing comment text or loading image...\n" + exception);
 
             string message;
             if (exception is XmlException)

@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 using Codeplex.Data;
+using System.Diagnostics;
 
 // using System.Windows.Controls;
 // using System.Runtime.Serialization.Json;
@@ -75,13 +76,31 @@ namespace MyBookmark
         } */
     }
 
-    class BookmarkPrims : ConcurrentDictionary<int, BookmarkPrim>
+    class BookmarkPrims : SortedDictionary<int, BookmarkPrim>
     {
         private CommentsManager m_CommentsManager;
 
         public CommentsManager GetCommentsManager()
         {
             return m_CommentsManager;
+        }
+
+        public void TryAdd(int key, BookmarkPrim value)
+        {
+            if(!this.ContainsKey(key))
+            {
+                this.Add(key, value);
+            }
+        }
+
+        public void TryRemove(int key, out BookmarkPrim value)
+        {
+            value = null;
+            if (this.ContainsKey(key))
+            {
+                value = this[key];
+                this.Remove(key);
+            }
         }
 
         public void SetCommentsManager(CommentsManager commentsManager)
@@ -95,19 +114,51 @@ namespace MyBookmark
         }
     }
 
-    class FileBookmarkPrims : ConcurrentDictionary<string, BookmarkPrims>
+    class FileBookmarkPrims : SortedDictionary<string, BookmarkPrims>
     {
+        public void TryAdd(string key, BookmarkPrims value)
+        {
+            if (!this.ContainsKey(key))
+            {
+                this.Add(key, value);
+            }
+        }
+
+        public void TryRemove(string key, out BookmarkPrims value)
+        {
+            value = null;
+            if (this.ContainsKey(key))
+            {
+                value = this[key];
+                this.Remove(key);
+            }
+        }
     }
 
     class MyBookmarkManager
     {
+        //=================================================================================================
+        // static
+        static private MyBookmarkManager s_Instandce;
+        static private string s_bookmarkDirectory;
+        static private string s_bookmarkFileName;
+        static private string s_RelativeFileName;
+        static private string s_FullFileName;
+        static private string s_projectDirectory;
+        static private string s_solutionDirectory;
+        static private StreamWriter s_LogWriter;
         // public static IWpfTextView s_CurView;
         public static DTE s_dte;
 
         public FileBookmarkPrims m_FileBookmarkPrims { get; set; }
+        private System.Timers.Timer m_timer = new System.Timers.Timer(50);
+        private string m_activeDocumentFileName;
+        private int m_activeDocumentLineNo;
 
         MyBookmarkManager()
         {
+            m_timer.Elapsed += timer_Jump;
+
             m_FileBookmarkPrims = new FileBookmarkPrims();
         }
 
@@ -129,26 +180,29 @@ namespace MyBookmark
             return (EnvDTE.TextSelection)s_dte.ActiveDocument.Selection;
         }
 
-        static public void Jump(string str)
+        private void ResetTimer()
         {
-            int idx = str.IndexOf('[');
-            if (idx >= 0)
-            {
-                idx++;
-                string fileName = str.Substring(idx);
-                int lineNo = int.Parse(fileName.Substring(fileName.IndexOf(':') + 1));
-                fileName = fileName.Substring(0, fileName.IndexOf(']'));
+            m_timer.Stop();
+            m_timer.Start();
+        }
 
+        private void timer_Jump(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            m_timer.Stop();
+
+            if (m_activeDocumentFileName != null)
+            {
+                // s_dte.ExecuteCommand("Window.ActivateDocumentWindow");
+                s_dte.ExecuteCommand("File.OpenFile", m_activeDocumentFileName);
                 for (int docIndex = 1; docIndex <= s_dte.Documents.Count; docIndex++)
                 {
                     Document document = s_dte.Documents.Item(docIndex);
                     string docFileName = RelativeFileName(document.FullName);
-                    if (docFileName == fileName)
+                    if (docFileName == m_activeDocumentFileName)
                     {
-                        document.Activate();
                         EnvDTE.TextSelection textSelection = (EnvDTE.TextSelection)(document.Selection);
-                        textSelection.GotoLine(lineNo, true);
-                        // for(int winIndex=1; winIndex<=document.Windows.Count; winIndex++)
+                        textSelection.GotoLine(m_activeDocumentLineNo, true);
+                        document.Activate();
                         if (document.Windows.Count > 0)
                         {
                             document.Windows.Item(1).Activate();
@@ -156,6 +210,29 @@ namespace MyBookmark
                         // for(int winIndex=1; winIndex<= s_dte.Windows.Count; winIndex++)
                         break;
                     }
+                }
+
+                m_activeDocumentFileName = null;
+            }
+        }
+
+        static public void Jump(object DataContext)
+        {
+            if (s_Instandce != null)
+            {
+                // int idx = str.IndexOf('[');
+                // if (idx >= 0)
+                VBookmarkPrim vBookmarkPrim = DataContext as VBookmarkPrim;
+                if (vBookmarkPrim != null)
+                {
+                    s_Instandce.m_activeDocumentFileName = vBookmarkPrim.m_FileName;
+                    s_Instandce.m_activeDocumentLineNo = vBookmarkPrim.m_LineNo;
+                    s_Instandce.ResetTimer();
+
+                    /* idx++;
+                    string fileName = str.Substring(idx);
+                    int lineNo = int.Parse(fileName.Substring(fileName.IndexOf(':') + 1));
+                    fileName = fileName.Substring(0, fileName.IndexOf(']')); */
                 }
             }
         }
@@ -175,13 +252,13 @@ namespace MyBookmark
         public BookmarkPrims CreateBookmarkPrims(CommentsManager commentsManager)
         {
             BookmarkPrims bookmarkPrims = null;
-            if (!m_FileBookmarkPrims.ContainsKey(s_fileName))
+            if (!m_FileBookmarkPrims.ContainsKey(s_RelativeFileName))
             {
                 bookmarkPrims = new BookmarkPrims(commentsManager);
-                m_FileBookmarkPrims.TryAdd(s_fileName, bookmarkPrims);
+                m_FileBookmarkPrims.TryAdd(s_RelativeFileName, bookmarkPrims);
             } else
             {
-                bookmarkPrims = m_FileBookmarkPrims[s_fileName];
+                bookmarkPrims = m_FileBookmarkPrims[s_RelativeFileName];
                 bookmarkPrims.SetCommentsManager(commentsManager);
             }
             commentsManager.SetBookmark(bookmarkPrims);
@@ -190,10 +267,10 @@ namespace MyBookmark
 
         public BookmarkPrims GetBookmarkPrims()
         {
-            return m_FileBookmarkPrims[s_fileName];
+            return m_FileBookmarkPrims[s_RelativeFileName];
         }
 
-        public struct VBookmarkPrim
+        public class VBookmarkPrim
         {
             public VBookmarkPrim(string fileName, int lineNo, BookmarkPrim bookmarkPrim)
             {
@@ -207,7 +284,7 @@ namespace MyBookmark
         };
         public void RedrawToolWindow()
         {
-            ConcurrentDictionary<string, List<VBookmarkPrim>> labels = new ConcurrentDictionary<string, List<VBookmarkPrim>>();
+            SortedDictionary<string, List<VBookmarkPrim>> labels = new SortedDictionary<string, List<VBookmarkPrim>>();
 
             foreach(var bookmarkPrims in m_FileBookmarkPrims)
             {
@@ -222,7 +299,7 @@ namespace MyBookmark
                     else
                     {
                         bookmarkPrimList = new List<VBookmarkPrim>();
-                        labels.TryAdd(bookmarkPrim.m_tag, bookmarkPrimList);
+                        labels.Add(bookmarkPrim.m_tag, bookmarkPrimList);
                     }
                     VBookmarkPrim vBookmarkPrim = new VBookmarkPrim(bookmarkPrims.Key, bookmarkPrimIt.Key, bookmarkPrim);
                     bookmarkPrimList.Add(vBookmarkPrim);
@@ -235,18 +312,48 @@ namespace MyBookmark
 
             if (treeView != null)
             {
-                treeView.Items.Clear();
+                SortedDictionary<string, TreeViewItem> treeViewItems = new SortedDictionary<string, TreeViewItem>();
+
+                foreach (var item in treeView.Items)
+                {
+                    TreeViewItem treeViewItem = item as TreeViewItem;
+                    if(treeViewItem != null)
+                    {
+                        treeViewItems.Add(treeViewItem.Header.ToString(), treeViewItem);
+                    }
+                }
+
+                // treeView.Items.Clear();
                 foreach (var label in labels)
                 {
-                    TreeViewItem labelItem = new TreeViewItem();
-                    labelItem.Header = label.Key.ToString();
-                    treeView.Items.Add(labelItem);
+                    TreeViewItem treeViewItem = null;
+                    string keystr = label.Key.ToString();
+                    if (treeViewItems.ContainsKey(keystr))
+                    {
+                        treeViewItem = treeViewItems[keystr];
+                        // TreeViewItem prim = null;
+                        // treeViewItems.TryRemove(keystr, out prim);
+                        treeViewItems.Remove(keystr);
+                        treeViewItem.Items.Clear();
+                    }
+                    else
+                    {
+                        treeViewItem = new TreeViewItem();
+                        treeViewItem.Header = label.Key.ToString();
+                        treeView.Items.Add(treeViewItem);
+                    }
                     foreach (var vBookmarkPrim in label.Value)
                     {
                         TreeViewItem item = new TreeViewItem();
+                        item.DataContext = vBookmarkPrim;
                         item.Header = vBookmarkPrim.m_BookmarkPrim.m_line + " [" + vBookmarkPrim.m_FileName + "]:" + vBookmarkPrim.m_LineNo;
-                        labelItem.Items.Add(item);
+                        treeViewItem.Items.Add(item);
                     }
+                }
+
+                foreach (var treeViewItem in treeViewItems)
+                {
+                    treeView.Items.Remove(treeViewItem.Value);
                 }
             }
         }
@@ -298,31 +405,59 @@ namespace MyBookmark
 
         public void DelBookmark()
         {
+            MyBookmarkManager.Log("DelBookmark");
             // if (s_CurView == null) return;
 
-            BookmarkPrim prim = null;
             BookmarkPrims bookmarkPrims = GetBookmarkPrims();
             int lineNo = GetCursorLineNo();
+            MyBookmarkManager.Log("bookmarkPrims.Remove lineNo=" + lineNo);
+            BookmarkPrim prim = null;
             bookmarkPrims.TryRemove(lineNo, out prim);
-            bookmarkPrims.GetCommentsManager().DelBookmark(lineNo);
+            // bookmarkPrims.GetCommentsManager().DelBookmark(lineNo);
             Save();
+            bookmarkPrims.GetCommentsManager().SetBookmark(bookmarkPrims);
             RedrawToolWindow();
         }
 
-
-        //=================================================================================================
-        // static
-        static private MyBookmarkManager s_Instandce;
-        static private string s_bookmarkDirectory;
-        static private string s_bookmarkFileName;
-        static private string s_fileName;
-        static private string s_projectDirectory;
-        static private string s_solutionDirectory;
+        public void ChangeLine(int editLineNumber, int dline)
+        {
+            if (dline != 0)
+            {
+                BookmarkPrims bookmarkPrims = GetBookmarkPrims();
+                BookmarkPrims newBookmarkPrims = new BookmarkPrims(bookmarkPrims.GetCommentsManager());
+                foreach (var bookmarkPrimIt in bookmarkPrims)
+                {
+                    if (bookmarkPrimIt.Key >= editLineNumber)
+                    {
+                        BookmarkPrim bookmarkPrim = null;
+                        bookmarkPrims.TryRemove(bookmarkPrimIt.Key, out bookmarkPrim);
+                        newBookmarkPrims.TryAdd(bookmarkPrimIt.Key + dline, bookmarkPrim);
+                    }
+                }
+                foreach (var bookmarkPrimIt in newBookmarkPrims)
+                {
+                    bookmarkPrims.TryAdd(bookmarkPrimIt.Key, bookmarkPrimIt.Value);
+                }
+                Save();
+                bookmarkPrims.GetCommentsManager().SetBookmark(bookmarkPrims);
+                RedrawToolWindow();
+            }
+        }
 
         public static MyBookmarkManager GetInstance()
         {
             return s_Instandce;
         }
+
+        public static void Log(string log)
+        {
+            if(s_LogWriter != null)
+            {
+                s_LogWriter.WriteLine(log);
+                s_LogWriter.Flush();
+            }
+        }
+
 
         public static bool Save()
         {
@@ -357,7 +492,8 @@ namespace MyBookmark
 
         public static void SetFileName(string fileName)
         {
-            s_fileName = RelativeFileName(fileName);
+            s_FullFileName = fileName;
+            s_RelativeFileName = RelativeFileName(fileName);
         }
 
         public static bool Load(CommentsManager commentsManager)
@@ -421,9 +557,10 @@ namespace MyBookmark
 
         public static void CloseView(CommentsManager commentsManager)
         {
-            if(commentsManager.m_FileName == s_fileName)
+            if(commentsManager.m_FileName == s_FullFileName)
             {
-                s_fileName = null;
+                s_FullFileName = null;
+                s_RelativeFileName = null;
             }
         }
 
@@ -436,7 +573,7 @@ namespace MyBookmark
             commentsManager.GetView().TextDataModel.DocumentBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document);
             ProjectItem projectItem = s_dte.Solution.FindProjectItem(document.FilePath);
 
-            string backFileName = s_fileName;
+            string backFileName = s_FullFileName;
 
             if (projectItem != null && projectItem.ContainingProject != null)
             {
@@ -478,11 +615,16 @@ namespace MyBookmark
                     s_bookmarkFileName = s_bookmarkDirectory + s_bookmarkFileName + @".mbk"; */
 
                     Load(commentsManager);
+
+                    string debugLogFileName = s_bookmarkDirectory + @"\debug.txt"; // debug.txtにログを出力する。
+                    File.Delete(debugLogFileName);
+                    s_LogWriter = new StreamWriter(debugLogFileName, true);
+                    MyBookmarkManager.Log("### DebugLog Start");
                 }
             }
 
             SetFileName(commentsManager.m_FileName);
-            if (s_fileName != backFileName)
+            if (s_FullFileName != backFileName)
             {
                 if (s_Instandce != null)
                 {

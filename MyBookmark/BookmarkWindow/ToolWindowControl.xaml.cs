@@ -51,7 +51,11 @@
         private void BookmarkTreeViewSelectionChanged(object sender, RoutedPropertyChangedEventArgs<Object> e)
         {
             // MessageBox.Show(((TreeViewItem)e.NewValue).Header.ToString());
-            MyBookmarkManager.Jump(((TreeViewItem)e.NewValue).Header.ToString());
+            // MyBookmarkManager.Jump(((TreeViewItem)e.NewValue).Header.ToString());
+            if (e.NewValue != null)
+            {
+                MyBookmarkManager.Jump(((TreeViewItem)e.NewValue).DataContext);
+            }
         }
     }
 }

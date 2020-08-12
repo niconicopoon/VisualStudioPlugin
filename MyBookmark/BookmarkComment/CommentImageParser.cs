@@ -65,7 +65,7 @@ namespace MyBookmark
                   match = _pythonImageCommentRegex.Match(lineText);
                   break;
                default:
-                  Console.WriteLine("Unsupported content type: " + contentTypeName);
+                  MyBookmarkManager.Log("Unsupported content type: " + contentTypeName);
                   break;
             }
 
