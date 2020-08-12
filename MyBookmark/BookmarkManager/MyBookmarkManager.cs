@@ -147,7 +147,6 @@ namespace MyBookmark
         static private string s_projectDirectory;
         static private string s_solutionDirectory;
         static private StreamWriter s_LogWriter;
-        // public static IWpfTextView s_CurView;
         public static DTE s_dte;
 
         public FileBookmarkPrims m_FileBookmarkPrims { get; set; }
@@ -275,6 +274,11 @@ namespace MyBookmark
             public VBookmarkPrim(string fileName, int lineNo, BookmarkPrim bookmarkPrim)
             {
                 m_FileName = fileName;
+                int idx = m_FileName.LastIndexOf(@"\");
+                if (idx > 0)
+                {
+                    m_FileName = m_FileName.Substring(idx+1);
+                }
                 m_LineNo = lineNo;
                 m_BookmarkPrim = bookmarkPrim;
             }
@@ -346,7 +350,8 @@ namespace MyBookmark
                     {
                         TreeViewItem item = new TreeViewItem();
                         item.DataContext = vBookmarkPrim;
-                        item.Header = vBookmarkPrim.m_BookmarkPrim.m_line + " [" + vBookmarkPrim.m_FileName + "]:" + vBookmarkPrim.m_LineNo;
+                        // item.Header = vBookmarkPrim.m_BookmarkPrim.m_line + " [" + vBookmarkPrim.m_FileName + "]:" + vBookmarkPrim.m_LineNo;
+                        item.Header = vBookmarkPrim.m_FileName + @":" + vBookmarkPrim.m_LineNo + @" " + vBookmarkPrim.m_BookmarkPrim.m_line;
                         treeViewItem.Items.Add(item);
                     }
                 }
@@ -356,6 +361,7 @@ namespace MyBookmark
                     treeView.Items.Remove(treeViewItem.Value);
                 }
             }
+
         }
 
         private void EditBookmark(BookmarkPrim prim)
@@ -371,8 +377,6 @@ namespace MyBookmark
         // ブックマークを追加、すでにあるなら edit する
         public void AddEditBookmark()
         {
-            // if (s_CurView == null) return;
-
             // EnvDTE.TextDocument textDocument = GetTextDocument();
             EnvDTE.TextSelection textSelection = GetTextSelection();
             if (textSelection != null)
@@ -396,17 +400,23 @@ namespace MyBookmark
                     bookmarkPrims.TryAdd(lineNo, prim);
                 }
                 EditBookmark(prim);
-                bookmarkPrims.TryAdd(lineNo, prim);
-                bookmarkPrims.GetCommentsManager().SetBookmark(bookmarkPrims);
-                Save();
-                RedrawToolWindow();
+                if (prim.m_comment == "")
+                {
+                    DelBookmark();
+                }
+                else
+                {
+                    bookmarkPrims.TryAdd(lineNo, prim);
+                    bookmarkPrims.GetCommentsManager().SetBookmark(bookmarkPrims);
+                    Save();
+                    RedrawToolWindow();
+                }
             }
         }
 
         public void DelBookmark()
         {
             MyBookmarkManager.Log("DelBookmark");
-            // if (s_CurView == null) return;
 
             BookmarkPrims bookmarkPrims = GetBookmarkPrims();
             int lineNo = GetCursorLineNo();
@@ -424,20 +434,26 @@ namespace MyBookmark
             if (dline != 0)
             {
                 BookmarkPrims bookmarkPrims = GetBookmarkPrims();
-                BookmarkPrims newBookmarkPrims = new BookmarkPrims(bookmarkPrims.GetCommentsManager());
+                // BookmarkPrims newBookmarkPrims = new BookmarkPrims(bookmarkPrims.GetCommentsManager());
+                List<int> keyList = new List<int>();
                 foreach (var bookmarkPrimIt in bookmarkPrims)
                 {
                     if (bookmarkPrimIt.Key >= editLineNumber)
                     {
-                        BookmarkPrim bookmarkPrim = null;
-                        bookmarkPrims.TryRemove(bookmarkPrimIt.Key, out bookmarkPrim);
-                        newBookmarkPrims.TryAdd(bookmarkPrimIt.Key + dline, bookmarkPrim);
+                        keyList.Add(bookmarkPrimIt.Key);
                     }
                 }
-                foreach (var bookmarkPrimIt in newBookmarkPrims)
+                foreach (var key in keyList)
+                {
+                    BookmarkPrim bookmarkPrim = null;
+                    bookmarkPrims.TryRemove(key, out bookmarkPrim);
+                    bookmarkPrims.TryAdd(key + dline, bookmarkPrim);
+                    // newBookmarkPrims.TryAdd(bookmarkPrimIt.Key + dline, bookmarkPrim);
+                }
+                /* foreach (var bookmarkPrimIt in newBookmarkPrims)
                 {
                     bookmarkPrims.TryAdd(bookmarkPrimIt.Key, bookmarkPrimIt.Value);
-                }
+                } */
                 Save();
                 bookmarkPrims.GetCommentsManager().SetBookmark(bookmarkPrims);
                 RedrawToolWindow();
@@ -567,8 +583,6 @@ namespace MyBookmark
         public static void SetView(CommentsManager commentsManager, SVsServiceProvider serviceProvider)
         {
             s_dte = (DTE)serviceProvider.GetService(typeof(DTE));
-
-            // s_CurView = commentsManager.GetView();
 
             commentsManager.GetView().TextDataModel.DocumentBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document);
             ProjectItem projectItem = s_dte.Solution.FindProjectItem(document.FilePath);
