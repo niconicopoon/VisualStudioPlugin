@@ -275,14 +275,13 @@ namespace MyBookmark
             {
                 m_FileName = fileName;
                 int idx = m_FileName.LastIndexOf(@"\");
-                if (idx > 0)
-                {
-                    m_FileName = m_FileName.Substring(idx+1);
-                }
+                m_Label = m_FileName.Substring(idx+1);
+                m_Label = m_Label + @":" + lineNo + @"  " + bookmarkPrim.m_line;
                 m_LineNo = lineNo;
                 m_BookmarkPrim = bookmarkPrim;
             }
             public string m_FileName;
+            public string m_Label;
             public int m_LineNo;
             public BookmarkPrim m_BookmarkPrim;
         };
@@ -350,8 +349,7 @@ namespace MyBookmark
                     {
                         TreeViewItem item = new TreeViewItem();
                         item.DataContext = vBookmarkPrim;
-                        // item.Header = vBookmarkPrim.m_BookmarkPrim.m_line + " [" + vBookmarkPrim.m_FileName + "]:" + vBookmarkPrim.m_LineNo;
-                        item.Header = vBookmarkPrim.m_FileName + @":" + vBookmarkPrim.m_LineNo + @" " + vBookmarkPrim.m_BookmarkPrim.m_line;
+                        item.Header = vBookmarkPrim.m_Label;
                         treeViewItem.Items.Add(item);
                     }
                 }
