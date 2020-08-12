@@ -9,18 +9,32 @@
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300"
              Name="MyToolWindow">
-    <Grid>
+    <Grid 
+        SizeChanged="OnGridSizeChange" 
+        ScrollViewer.HorizontalScrollBarVisibility="Visible" RenderTransformOrigin="0.533,0.55">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="55*"/>
+            <ColumnDefinition Width="141*"/>
+            <ColumnDefinition Width="104*"/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="0*"/>
-            <RowDefinition Height="41*"/>
-            <RowDefinition Height="9*"/>
+            <RowDefinition Height="215*"/>
+            <RowDefinition Height="14*"/>
+            <RowDefinition Height="17*"/>
+            <RowDefinition Height="54*"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Vertical" Margin="0,0,0,-19" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" CanHorizontallyScroll="True" CanVerticallyScroll="True" Grid.RowSpan="3">
-            <TreeView x:Name="m_BookmarkTreeView" SelectedItemChanged="BookmarkTreeViewSelectionChanged" RenderTransformOrigin="0.502,0.738" VerticalContentAlignment="Stretch"/>
+        <StackPanel Orientation="Vertical" Margin="0,0,0,0" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto" CanHorizontallyScroll="True" CanVerticallyScroll="True" Grid.RowSpan="5" Grid.ColumnSpan="3" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TreeView 
+                x:Name="m_BookmarkTreeView"
+                SelectedItemChanged="BookmarkTreeViewSelectionChanged"
+                RenderTransformOrigin="0.502,0.738"
+                VerticalContentAlignment="Top"
+                ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                Width="10"
+                Height="10"/>
         </StackPanel>
     </Grid>
 </UserControl>

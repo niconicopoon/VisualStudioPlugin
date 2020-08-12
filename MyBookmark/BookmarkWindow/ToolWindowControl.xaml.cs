@@ -41,12 +41,6 @@
         /// <param name="e">The event args.</param>
         [SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions", Justification = "Sample code")]
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
-        private void button1_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(
-                string.Format(System.Globalization.CultureInfo.CurrentUICulture, "Invoked '{0}'", this.ToString()),
-                "MyBookmarkWindow");
-        }
 
         private void BookmarkTreeViewSelectionChanged(object sender, RoutedPropertyChangedEventArgs<Object> e)
         {
@@ -56,6 +50,12 @@
             {
                 MyBookmarkManager.Jump(((TreeViewItem)e.NewValue).DataContext);
             }
+        }
+
+        private void OnGridSizeChange(object sender, SizeChangedEventArgs e)
+        {
+            m_BookmarkTreeView.Width = e.NewSize.Width;
+            m_BookmarkTreeView.Height = e.NewSize.Height;
         }
     }
 }
