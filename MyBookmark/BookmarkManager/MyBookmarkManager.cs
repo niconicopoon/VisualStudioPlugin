@@ -45,16 +45,24 @@ namespace MyBookmark
 
         public void SetTag()
         {
-            System.IO.StringReader rs = new System.IO.StringReader(m_comment);
-            m_line = rs.ReadLine();
-            int index = m_line.IndexOf(' ');
-            if (index < 0)
+            if (m_comment == null || m_comment == "")
             {
-                m_tag = m_line;
+                m_line = "";
+                m_tag = "";
             }
             else
             {
-                m_tag = m_line.Substring(0, index);
+                System.IO.StringReader rs = new System.IO.StringReader(m_comment);
+                m_line = rs.ReadLine();
+                int index = m_line.IndexOf(' ');
+                if (index < 0)
+                {
+                    m_tag = m_line;
+                }
+                else
+                {
+                    m_tag = m_line.Substring(0, index);
+                }
             }
 
             m_that = Util.GetWithoutUselessCharacter(m_that);
@@ -185,6 +193,20 @@ namespace MyBookmark
             m_timer.Start();
         }
 
+        private Document GetActiveDocument()
+        {
+            for (int docIndex = 1; docIndex <= s_dte.Documents.Count; docIndex++)
+            {
+                Document document = s_dte.Documents.Item(docIndex);
+                string docFileName = RelativeFileName(document.FullName);
+                if (docFileName == m_activeDocumentFileName)
+                {
+                    return document;
+                }
+            }
+            return null;
+        }
+
         private void timer_Jump(object sender, System.Timers.ElapsedEventArgs e)
         {
             m_timer.Stop();
@@ -193,21 +215,15 @@ namespace MyBookmark
             {
                 // s_dte.ExecuteCommand("Window.ActivateDocumentWindow");
                 s_dte.ExecuteCommand("File.OpenFile", m_activeDocumentFileName);
-                for (int docIndex = 1; docIndex <= s_dte.Documents.Count; docIndex++)
+                Document document = GetActiveDocument();
+                if(document != null)
                 {
-                    Document document = s_dte.Documents.Item(docIndex);
-                    string docFileName = RelativeFileName(document.FullName);
-                    if (docFileName == m_activeDocumentFileName)
+                    EnvDTE.TextSelection textSelection = (EnvDTE.TextSelection)(document.Selection);
+                    textSelection.GotoLine(m_activeDocumentLineNo, true);
+                    document.Activate();
+                    if (document.Windows.Count > 0)
                     {
-                        EnvDTE.TextSelection textSelection = (EnvDTE.TextSelection)(document.Selection);
-                        textSelection.GotoLine(m_activeDocumentLineNo, true);
-                        document.Activate();
-                        if (document.Windows.Count > 0)
-                        {
-                            document.Windows.Item(1).Activate();
-                        }
-                        // for(int winIndex=1; winIndex<= s_dte.Windows.Count; winIndex++)
-                        break;
+                        document.Windows.Item(1).Activate();
                     }
                 }
 
@@ -267,6 +283,15 @@ namespace MyBookmark
         public BookmarkPrims GetBookmarkPrims()
         {
             return m_FileBookmarkPrims[s_RelativeFileName];
+        }
+
+        public static BookmarkPrims GetInstanceBookmarkPrims()
+        {
+            if (s_Instandce != null)
+            {
+                return s_Instandce.GetBookmarkPrims();
+            }
+            return null;
         }
 
         public class VBookmarkPrim
@@ -580,7 +605,10 @@ namespace MyBookmark
 
         public static void SetView(CommentsManager commentsManager, SVsServiceProvider serviceProvider)
         {
-            s_dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            if (serviceProvider != null)
+            {
+                s_dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            }
 
             commentsManager.GetView().TextDataModel.DocumentBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document);
             ProjectItem projectItem = s_dte.Solution.FindProjectItem(document.FilePath);
@@ -643,6 +671,22 @@ namespace MyBookmark
                     s_Instandce.CreateBookmarkPrims(commentsManager);           // m_FileBookmarkPrims.TryAdd(s_fileName, bookmarkPrims); する
                 }
             }
+        }
+
+        public static void Reload(CommentsManager commentsManager)
+        {
+            /* SetView(commentsManager, null);
+            BookmarkPrims bookmarkPrims = GetInstanceBookmarkPrims();
+            if (bookmarkPrims != null)
+            {
+                Document document = s_Instandce.GetActiveDocument();
+                if(document != null  && document.Selection != null)
+                {
+                    EnvDTE.TextSelection textSelection = (EnvDTE.TextSelection)document.Selection;
+
+                    textSelection.MoveToPoint(textSelection.TopLine);
+                }
+            } */
         }
     }
 }

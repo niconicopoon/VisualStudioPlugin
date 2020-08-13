@@ -117,6 +117,23 @@ namespace MyBookmark
             }
         } */
 
+        internal void OnFileActionOccurred(object sender, TextDocumentFileActionEventArgs args)
+        {
+            if (args.FileActionType == FileActionTypes.ContentLoadedFromDisk)
+            {
+                MyBookmarkManager.Reload(this);
+            }
+        }
+
+        internal void OnEncodingChanged(object sender, EncodingChangedEventArgs args)
+        {
+
+        }
+        internal void OnDirtyStateChanged(object sender, EventArgs args)
+        {
+
+        }
+
         public CommentsManager(IWpfTextView view, ITextDocumentFactoryService textDocumentFactory, SVsServiceProvider serviceProvider)
         {
             // AddCommandFilter(view, new KeyBindingCommandFilter(view));            // #eiichi
@@ -128,6 +145,10 @@ namespace MyBookmark
 
             // #hang_no 2
             m_view.TextDataModel.DocumentBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document);
+            document.FileActionOccurred += OnFileActionOccurred;
+            document.EncodingChanged += OnEncodingChanged;
+            document.DirtyStateChanged += OnDirtyStateChanged;
+
             m_FileName = document.FilePath;
 
             Images = new ConcurrentDictionary<int, CommentImage>();                 // #Image Images = new ConcurrentDictionary
@@ -161,17 +182,7 @@ namespace MyBookmark
             }
         }
 
-    /* public static double GetBlockHeight(Block block)
-    {
-        Rect rectangleInFirstBlockLine = block.ElementStart.GetCharacterRect(LogicalDirection.Forward);
-        Rect rectangleInLastBlockLine = block.ElementEnd.GetCharacterRect(LogicalDirection.Forward);
-
-        double blockHeight = rectangleInLastBlockLine.Top - rectangleInFirstBlockLine.Top;
-
-        return blockHeight;
-    } */
-
-    private double GethDocumentHeight(Viewbox viewbox, CommentRichTextBox RichTextBox)
+        private double GethDocumentHeight(Viewbox viewbox, CommentRichTextBox RichTextBox)
         {
             viewbox.Child = RichTextBox;
             viewbox.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
