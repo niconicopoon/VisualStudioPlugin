@@ -48,6 +48,11 @@ namespace MyBookmark
 
         public string m_FileName;
 
+        public string RelativeFileName()
+        {
+            return MyBookmarkManager.RelativeFileName(m_FileName);
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CommentsAdornment"/> class.
         /// </summary>
@@ -125,14 +130,12 @@ namespace MyBookmark
             }
         }
 
-        internal void OnEncodingChanged(object sender, EncodingChangedEventArgs args)
+        /* internal void OnEncodingChanged(object sender, EncodingChangedEventArgs args)
         {
-
         }
         internal void OnDirtyStateChanged(object sender, EventArgs args)
         {
-
-        }
+        } */
 
         public CommentsManager(IWpfTextView view, ITextDocumentFactoryService textDocumentFactory, SVsServiceProvider serviceProvider)
         {
@@ -146,8 +149,8 @@ namespace MyBookmark
             // #hang_no 2
             m_view.TextDataModel.DocumentBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document);
             document.FileActionOccurred += OnFileActionOccurred;
-            document.EncodingChanged += OnEncodingChanged;
-            document.DirtyStateChanged += OnDirtyStateChanged;
+            // document.EncodingChanged += OnEncodingChanged;
+            // document.DirtyStateChanged += OnDirtyStateChanged;
 
             m_FileName = document.FilePath;
 
@@ -201,17 +204,20 @@ namespace MyBookmark
             foreach (var it in bookmarkPrims)
             {
                 int lineNo = it.Key - 1;
+                bool redraw = false;
 
                 CommentRichTextBox TextBox = null;
                 if (!RichTextBoxs.ContainsKey(lineNo))
                 {
                     TextBox = new CommentRichTextBox(it.Value);
                     RichTextBoxs.TryAdd(lineNo, TextBox);
+                    redraw = true;
                 }
                 else
                 if (RichTextBoxs[lineNo].m_comment != it.Value.m_comment)
                 {
                     TextBox = RichTextBoxs[lineNo];
+                    redraw = true;
                 }
                 if (TextBox != null)
                 {
@@ -229,12 +235,14 @@ namespace MyBookmark
                     TextBox.Height = Height;
                     TextBox.Visibility = Visibility.Visible;
                 }
-
-                RequestRedrawLine(lineNo);
+                if (redraw)
+                {
+                    RequestRedrawLine(lineNo);
+                }
             }
         }
 
-        public void DelBookmark(int lineNo)
+        /* public void DelBookmark(int lineNo)
         {
             MyBookmarkManager.Log("DelBookmark lineNo" + lineNo);
             lineNo -= 1;
@@ -244,7 +252,7 @@ namespace MyBookmark
                 RichTextBoxs.TryRemove(lineNo, out TextBox);
                 RequestRedrawLine(lineNo);
             }
-        }
+        } */
 
         private static void HyperlinksSubscriptions(FlowDocument flowDocument)
         {
@@ -355,14 +363,47 @@ namespace MyBookmark
         {
             try
             {
-                IWpfTextViewLineCollection textViewLines = this.m_view.TextViewLines;
-                ITextViewLine line = textViewLines[lineNo];
-                m_view.DisplayTextLineContainingBufferPosition(line.Start, line.Top, ViewRelativePosition.Top);
+                foreach (var line in m_view.TextSnapshot.Lines)
+                {
+                    int lineNumber = line.Snapshot.GetLineFromPosition(line.Start.Position).LineNumber;
+                    if (lineNo == lineNumber)
+                    {
+                        m_view.DisplayTextLineContainingBufferPosition(line.Start, 0.0, ViewRelativePosition.Top);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 ExceptionHandler.Notify(ex, true);
             }
+
+            // RequestRedrawView();
+
+            /* foreach (ITextViewLine line in this.m_view.TextViewLines)
+            {
+                m_view.DisplayTextLineContainingBufferPosition(line.Start, line.Top, ViewRelativePosition.Top);
+                // int lineNumber = line.Snapshot.GetLineFromPosition(line.Start.Position).LineNumber;
+                // m_editedLines[lineNumber] = line;            // #Image _editedLines[lineNumber] = line
+            } */
+
+            // ResetTimer();
+
+            /* try
+            {
+                IWpfTextViewLineCollection textViewLines = this.m_view.TextViewLines;
+                foreach (var line in this.m_view.TextViewLines)
+                {
+                    int lineNumber = line.Snapshot.GetLineFromPosition(line.Start.Position).LineNumber;
+                    if(lineNo == lineNumber)
+                    {
+                        m_view.DisplayTextLineContainingBufferPosition(line.Start, line.Top, ViewRelativePosition.Top);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ExceptionHandler.Notify(ex, true);
+            } */
         }
 
 
