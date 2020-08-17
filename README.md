@@ -30,3 +30,6 @@
 
 #### ↓検証用のデバッグプロジェクトです　
 https://github.com/niconicopoon/VisualStudioPlugin/tree/master/MyBookmark/DebugProject
+
+#### 改造元のソースコードはここからいただきました
+https://github.com/mariusbancila/memefulcomments
