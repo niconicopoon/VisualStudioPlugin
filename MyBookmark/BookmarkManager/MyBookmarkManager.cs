@@ -202,18 +202,21 @@ namespace MyBookmark
 
             if (m_activeDocumentFileName != null)
             {
-                // s_dte.ExecuteCommand("Window.ActivateDocumentWindow");
-                s_dte.ExecuteCommand("File.OpenFile", m_activeDocumentFileName);
+                s_dte.ExecuteCommand("Window.ActivateDocumentWindow");
+                // s_dte.ExecuteCommand("File.OpenFile", m_activeDocumentFileName);
+                s_dte.ItemOperations.OpenFile(m_activeDocumentFileName, EnvDTE.Constants.vsViewKindTextView);
+
                 Document document = GetActiveDocument();
                 if (document != null)
                 {
                     EnvDTE.TextSelection textSelection = (EnvDTE.TextSelection)(document.Selection);
-                    textSelection.GotoLine(m_activeDocumentLineNo, true);
+                    textSelection.GotoLine(m_activeDocumentLineNo, false);
                     document.Activate();
                     if (document.Windows.Count > 0)
                     {
                         document.Windows.Item(1).Activate();
                     }
+                    textSelection.StartOfLine(vsStartOfLineOptions.vsStartOfLineOptionsFirstColumn);
                 }
 
                 m_activeDocumentFileName = null;
@@ -302,7 +305,7 @@ namespace MyBookmark
             public VBookmarkPrim(string fileName, int lineNo, BookmarkPrim bookmarkPrim)
             {
                 lineNo++;
-                m_FileName = fileName;
+                m_FileName = ToUpperFilePath(fileName);
                 int idx = m_FileName.LastIndexOf(@"\");
                 m_Label = m_FileName.Substring(idx+1);
                 m_Label = m_Label + @":" + lineNo + @"  " + bookmarkPrim.m_line;
@@ -562,8 +565,15 @@ namespace MyBookmark
             return true;
         }
 
+        public static string ToUpperFilePath(string fileName)
+        {
+            string directory = Path.GetDirectoryName(fileName).ToUpper(); ;
+            return directory + "\\" + Path.GetFileName(fileName);
+        }
+
         public static string RelativeFileName(string fileName)
         {
+            fileName = ToUpperFilePath(fileName);
             int idx = fileName.IndexOf(s_solutionDirectory);
             if (idx == 0)
             {
@@ -574,7 +584,7 @@ namespace MyBookmark
 
         public static void SetFileName(string fileName)
         {
-            s_FullFileName = fileName;
+            s_FullFileName = ToUpperFilePath(fileName);
             s_RelativeFileName = RelativeFileName(fileName);
         }
 
@@ -697,6 +707,7 @@ namespace MyBookmark
                 if (solutionPath != "") // solutionPath will be empty if project isn't part of a saved solution
                 {
                     solutionDirectory = Path.GetDirectoryName(solutionPath) + @"\";
+                    solutionDirectory = solutionDirectory.ToUpper();
                 }
 
                 if (s_solutionDirectory == solutionDirectory)

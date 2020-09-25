@@ -152,7 +152,7 @@ namespace MyBookmark
             // document.EncodingChanged += OnEncodingChanged;
             // document.DirtyStateChanged += OnDirtyStateChanged;
 
-            m_FileName = document.FilePath;
+            m_FileName = MyBookmarkManager.ToUpperFilePath(document.FilePath);
 
             Images = new ConcurrentDictionary<int, CommentImage>();                 // #Image Images = new ConcurrentDictionary
             RichTextBoxs = new ConcurrentDictionary<int, CommentRichTextBox>();     // #eiichi
